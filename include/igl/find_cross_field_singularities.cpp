@@ -21,19 +21,20 @@ IGL_INLINE void igl::find_cross_field_singularities(const Eigen::PlainObjectBase
                                                     const Eigen::PlainObjectBase<DerivedF> &F,
                                                     const Eigen::PlainObjectBase<DerivedM> &Handle_MMatch,
                                                     Eigen::PlainObjectBase<DerivedO> &isSingularity,
-                                                    Eigen::PlainObjectBase<DerivedO> &singularityIndex)
+                                                    Eigen::PlainObjectBase<DerivedO> &singularityIndex,NTInterrupter* interrupter)
 {
   std::vector<bool> V_border = igl::is_border_vertex(V,F);
 
   std::vector<std::vector<int> > VF;
   std::vector<std::vector<int> > VFi;
-  igl::vertex_triangle_adjacency(V,F,VF,VFi);
+  igl::vertex_triangle_adjacency(V,F,VF,VFi,interrupter);
 
 
   isSingularity.setZero(V.rows(),1);
   singularityIndex.setZero(V.rows(),1);
   for (unsigned int vid=0;vid<V.rows();vid++)
   {
+    if(NTInterrupter::wasInterrupted(interrupter,(double)vid/V.rows()))return;
     ///check that is on border..
     if (V_border[vid])
       continue;
@@ -41,6 +42,7 @@ IGL_INLINE void igl::find_cross_field_singularities(const Eigen::PlainObjectBase
     int missmatch=0;
     for (unsigned int i=0;i<VF[vid].size();i++)
     {
+      if(NTInterrupter::wasInterrupted(interrupter))return;
       // look for the vertex
       int j=-1;
       for (unsigned z=0; z<3; ++z)
@@ -66,12 +68,16 @@ IGL_INLINE void igl::find_cross_field_singularities(const Eigen::PlainObjectBase
                                                     const Eigen::PlainObjectBase<DerivedV> &PD2,
                                                     Eigen::PlainObjectBase<DerivedO> &isSingularity,
                                                     Eigen::PlainObjectBase<DerivedO> &singularityIndex,
-                                                    bool isCombed)
+                                                    bool isCombed,NTInterrupter* interrupter)
 {
+  // Eigen::PlainObjectBase<Eigen::Matrix<int, -1, 1, 0, -1, 1> > Handle_MMatch;
+  // Eigen::PlainObjectBase<Eigen::Matrix<int,  Eigen::Dynamic, 3> > Handle_MMatch;
+  // Eigen::Matrix<int, Eigen::Dynamic, 3> Handle_MMatch;
   Eigen::Matrix<typename DerivedF::Scalar, Eigen::Dynamic, 3> Handle_MMatch;
-
-  igl::cross_field_missmatch(V, F, PD1, PD2, isCombed, Handle_MMatch);
-  igl::find_cross_field_singularities(V, F, Handle_MMatch, isSingularity, singularityIndex);
+  // Eigen::Matrix<typename DerivedF::Scalar, Eigen::Dynamic, 3> Handle_MMatch;
+  // Eigen::Matrix<typename DerivedF::Scalar, Eigen::Dynamic, Eigen::Dynamic> Handle_MMatch;
+  igl::cross_field_missmatch<DerivedV, DerivedF>(V, F, PD1, PD2, isCombed, Handle_MMatch);
+  igl::find_cross_field_singularities(V, F, Handle_MMatch, isSingularity, singularityIndex,interrupter);
 }
 
 #ifdef IGL_STATIC_LIBRARY
@@ -80,6 +86,4 @@ template void igl::find_cross_field_singularities<Eigen::Matrix<double, -1, 3, 0
 template void igl::find_cross_field_singularities<Eigen::Matrix<double, -1, 3, 0, -1, 3>, Eigen::Matrix<int, -1, 3, 0, -1, 3>, Eigen::Matrix<int, -1, 1, 0, -1, 1> >(Eigen::PlainObjectBase<Eigen::Matrix<double, -1, 3, 0, -1, 3> > const&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, 3, 0, -1, 3> > const&, Eigen::PlainObjectBase<Eigen::Matrix<double, -1, 3, 0, -1, 3> > const&, Eigen::PlainObjectBase<Eigen::Matrix<double, -1, 3, 0, -1, 3> > const&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, 1, 0, -1, 1> >&,
 Eigen::PlainObjectBase<Eigen::Matrix<int, -1, 1, 0, -1, 1> >&, bool);
 template void igl::find_cross_field_singularities<Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, 1, 0, -1, 1> >(Eigen::PlainObjectBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> > const&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> > const&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> > const&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, 1, 0, -1, 1> >&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, 1, 0, -1, 1> >&);
-template void igl::find_cross_field_singularities<Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, -1, 0, -1, -1> >(Eigen::PlainObjectBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> > const&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> > const&, Eigen::PlainObjectBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> > const&, Eigen::PlainObjectBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> > const&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> >&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> >&, bool);
-template void igl::find_cross_field_singularities<Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, -1, 0, -1, -1> >(Eigen::PlainObjectBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> > const&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> > const&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> > const&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> >&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> >&);
 #endif

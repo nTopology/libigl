@@ -28,14 +28,14 @@ namespace igl
     const Eigen::SparseMatrix<T>& X,
     const Eigen::Matrix<int,Eigen::Dynamic,1> & R,
     const Eigen::Matrix<int,Eigen::Dynamic,1> & C,
-    Eigen::SparseMatrix<T>& Y);
+    Eigen::SparseMatrix<T>& Y,NTInterrupter* interrupter = nullptr);
 
   template <typename DerivedX>
   IGL_INLINE void slice_into(
     const Eigen::PlainObjectBase<DerivedX> & X,
     const Eigen::Matrix<int,Eigen::Dynamic,1> & R,
     const Eigen::Matrix<int,Eigen::Dynamic,1> & C,
-    Eigen::PlainObjectBase<DerivedX> & Y);
+    Eigen::PlainObjectBase<DerivedX> & Y,NTInterrupter* interrupter = nullptr);
   // Wrapper to only slice in one direction
   //
   // Inputs:
@@ -47,13 +47,13 @@ namespace igl
     const Mat& X,
     const Eigen::Matrix<int,Eigen::Dynamic,1> & R,
     const int dim,
-    Mat& Y);
+    Mat& Y,NTInterrupter* interrupter = nullptr);
 
   template <typename DerivedX>
   IGL_INLINE void slice_into(
     const Eigen::PlainObjectBase<DerivedX> & X,
     const Eigen::Matrix<int,Eigen::Dynamic,1> & R,
-    Eigen::PlainObjectBase<DerivedX> & Y);
+    Eigen::PlainObjectBase<DerivedX> & Y,NTInterrupter* interrupter = nullptr);
 }
 
 #ifndef IGL_STATIC_LIBRARY

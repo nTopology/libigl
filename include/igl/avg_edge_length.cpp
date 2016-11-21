@@ -12,13 +12,14 @@
 template <typename DerivedV, typename DerivedF>
 IGL_INLINE double igl::avg_edge_length(
   const Eigen::PlainObjectBase<DerivedV>& V,
-  const Eigen::PlainObjectBase<DerivedF>& F)
+  const Eigen::PlainObjectBase<DerivedF>& F,NTInterrupter* interrupter)
 {
   double avg = 0;
   long int count = 0;
 
   for (unsigned i=0;i<F.rows();++i)
   {
+    if(NTInterrupter::wasInterrupted(interrupter,(double)i/F.rows()))return 0.0;
     for (unsigned j=0;j<F.cols();++j)
     {
       ++count;

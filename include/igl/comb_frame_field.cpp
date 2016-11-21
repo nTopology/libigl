@@ -22,7 +22,7 @@ IGL_INLINE void igl::comb_frame_field(const Eigen::PlainObjectBase<DerivedV> &V,
                                       const Eigen::PlainObjectBase<DerivedP> &BIS1_combed,
                                       const Eigen::PlainObjectBase<DerivedP> &BIS2_combed,
                                       Eigen::PlainObjectBase<DerivedP> &PD1_combed,
-                                      Eigen::PlainObjectBase<DerivedP> &PD2_combed)
+                                      Eigen::PlainObjectBase<DerivedP> &PD2_combed,NTInterrupter* interrupter)
 {
   DerivedV B1, B2, B3;
   igl::local_basis(V,F,B1,B2,B3);
@@ -32,6 +32,7 @@ IGL_INLINE void igl::comb_frame_field(const Eigen::PlainObjectBase<DerivedV> &V,
 
   for (unsigned i=0; i<PD1.rows();++i)
   {
+    if(NTInterrupter::wasInterrupted(interrupter,(double)i/PD1.rows()))return;
     Eigen::Matrix<typename DerivedP::Scalar,4,3> DIRs;
     DIRs <<
     PD1.row(i),
@@ -47,9 +48,10 @@ IGL_INLINE void igl::comb_frame_field(const Eigen::PlainObjectBase<DerivedV> &V,
     // center on the combed sector center
     for (unsigned j=0;j<4;++j)
     {
+      if(NTInterrupter::wasInterrupted(interrupter))return;
       a[j] = atan2(B2.row(i).dot(DIRs.row(j)),B1.row(i).dot(DIRs.row(j))) - a_combed;
       //make it positive by adding some multiple of 2pi
-      a[j] += ceil (std::max(0., -a[j]) / (M_PI*2.)) * (M_PI*2.);
+      a[j] += std::ceil (std::max(0., -a[j]) / (M_PI*2.)) * (M_PI*2.);
       //take modulo 2pi
       a[j] = fmod(a[j], (M_PI*2.));
     }

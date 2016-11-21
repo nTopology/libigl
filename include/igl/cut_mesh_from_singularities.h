@@ -33,7 +33,7 @@ namespace igl
     const Eigen::PlainObjectBase<DerivedV> &V, 
     const Eigen::PlainObjectBase<DerivedF> &F, 
     const Eigen::PlainObjectBase<DerivedM> &MMatch,
-    Eigen::PlainObjectBase<DerivedO> &seams);
+    Eigen::PlainObjectBase<DerivedO> &seams,NTInterrupter* interrupter = nullptr);
 }
 #ifndef IGL_STATIC_LIBRARY
 #include "cut_mesh_from_singularities.cpp"

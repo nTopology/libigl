@@ -30,7 +30,7 @@ namespace igl {
     const Eigen::PlainObjectBase<DerivedV> &PD2;
     
     DerivedV N;
-
+    NTInterrupter* mInterrupter;
   private:
     // internal
     std::vector<bool> V_border; // bool
@@ -80,17 +80,24 @@ public:
   inline MissMatchCalculator(const Eigen::PlainObjectBase<DerivedV> &_V,
                       const Eigen::PlainObjectBase<DerivedF> &_F,
                       const Eigen::PlainObjectBase<DerivedV> &_PD1,
-                      const Eigen::PlainObjectBase<DerivedV> &_PD2
+                      const Eigen::PlainObjectBase<DerivedV> &_PD2,
+                      NTInterrupter * interrupter
                       ):
   V(_V),
   F(_F),
   PD1(_PD1),
-  PD2(_PD2)
+  PD2(_PD2),
+  mInterrupter(interrupter)
   {
+    if(NTInterrupter::startSection(interrupter,.25))return;
     igl::per_face_normals(V,F,N);
+    if(NTInterrupter::endSection(interrupter))return;
+
+    if(NTInterrupter::startSection(interrupter,.75))return;
     V_border = igl::is_border_vertex(V,F);
-    igl::vertex_triangle_adjacency(V,F,VF,VFi);
-    igl::triangle_triangle_adjacency(F,TT,TTi);
+    igl::vertex_triangle_adjacency(V,F,VF,VFi,interrupter);
+    igl::triangle_triangle_adjacency(F,TT,TTi,interrupter);
+    if(NTInterrupter::endSection(interrupter))return;
   }
 
   inline void calculateMissmatch(Eigen::PlainObjectBase<DerivedM> &Handle_MMatch)
@@ -98,8 +105,10 @@ public:
     Handle_MMatch.setConstant(F.rows(),3,-1);
     for (size_t i=0;i<F.rows();i++)
     {
+      if(NTInterrupter::wasInterrupted(mInterrupter,(double)i/F.rows()))return;
       for (int j=0;j<3;j++)
       {
+        if(NTInterrupter::wasInterrupted(mInterrupter))return;
         if (((int)i)==TT(i,j) || TT(i,j) == -1)
           Handle_MMatch(i,j)=0;
         else
@@ -116,20 +125,28 @@ IGL_INLINE void igl::cross_field_missmatch(const Eigen::PlainObjectBase<DerivedV
                                            const Eigen::PlainObjectBase<DerivedV> &PD1,
                                            const Eigen::PlainObjectBase<DerivedV> &PD2,
                                            const bool isCombed,
-                                           Eigen::PlainObjectBase<DerivedM> &missmatch)
+                                           Eigen::PlainObjectBase<DerivedM> &missmatch,
+                                           NTInterrupter* interrupter)
 {
   DerivedV PD1_combed;
   DerivedV PD2_combed;
-
+  if(NTInterrupter::startSection(interrupter,.25))return;
   if (!isCombed)
-    igl::comb_cross_field(V,F,PD1,PD2,PD1_combed,PD2_combed);
+    igl::comb_cross_field(V,F,PD1,PD2,PD1_combed,PD2_combed,interrupter);
   else
   {
     PD1_combed = PD1;
     PD2_combed = PD2;
   }
-  igl::MissMatchCalculator<DerivedV, DerivedF, DerivedM> sf(V, F, PD1_combed, PD2_combed);
+  if(NTInterrupter::endSection(interrupter))return;
+
+  if(NTInterrupter::startSection(interrupter,.25))return;
+  igl::MissMatchCalculator<DerivedV, DerivedF, DerivedM> sf(V, F, PD1_combed, PD2_combed,interrupter);
+  if(NTInterrupter::endSection(interrupter))return;
+  
+  if(NTInterrupter::startSection(interrupter,.5))return;
   sf.calculateMissmatch(missmatch);
+  if(NTInterrupter::endSection(interrupter))return;
 }
 
 #ifdef IGL_STATIC_LIBRARY

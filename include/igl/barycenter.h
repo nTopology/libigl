@@ -26,7 +26,7 @@ namespace igl
   IGL_INLINE void barycenter(
       const Eigen::PlainObjectBase<DerivedV> & V,
       const Eigen::PlainObjectBase<DerivedF> & F,
-      Eigen::PlainObjectBase<DerivedBC> & BC);
+      Eigen::PlainObjectBase<DerivedBC> & BC,NTInterrupter* interrupter = nullptr);
 }
 
 #ifndef IGL_STATIC_LIBRARY

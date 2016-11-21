@@ -8,7 +8,7 @@
 
 #ifndef IGL_COMB_FRAME_FIELD_H
 #define IGL_COMB_FRAME_FIELD_H
-#include "igl_inline.h"
+#include <igl/igl_inline.h>
 #include <Eigen/Core>
 namespace igl
 {
@@ -38,7 +38,7 @@ namespace igl
                                         const Eigen::PlainObjectBase<DerivedP> &BIS1_combed,
                                         const Eigen::PlainObjectBase<DerivedP> &BIS2_combed,
                                         Eigen::PlainObjectBase<DerivedP> &PD1_combed,
-                                        Eigen::PlainObjectBase<DerivedP> &PD2_combed);
+                                        Eigen::PlainObjectBase<DerivedP> &PD2_combed,NTInterrupter* interrupter = nullptr);
 }
 #ifndef IGL_STATIC_LIBRARY
 #include "comb_frame_field.cpp"

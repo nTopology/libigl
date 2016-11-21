@@ -17,30 +17,32 @@ IGL_INLINE void igl::slice_into(
   const Eigen::SparseMatrix<T>& X,
   const Eigen::Matrix<int,Eigen::Dynamic,1> & R,
   const Eigen::Matrix<int,Eigen::Dynamic,1> & C,
-  Eigen::SparseMatrix<T>& Y)
+  Eigen::SparseMatrix<T>& Y,NTInterrupter* interrupter)
 {
 
-#ifndef NDEBUG
-  int xm = X.rows();
-  int xn = X.cols();
-  assert(R.size() == xm);
-  assert(C.size() == xn);
-  int ym = Y.size();
-  int yn = Y.size();
-  assert(R.minCoeff() >= 0);
-  assert(R.maxCoeff() < ym);
-  assert(C.minCoeff() >= 0);
-  assert(C.maxCoeff() < yn);
-#endif
+// #ifndef NDEBUG
+//   int xm = X.rows();
+//   int xn = X.cols();
+//   assert(R.size() == xm);
+//   assert(C.size() == xn);
+//   int ym = Y.size();
+//   int yn = Y.size();
+//   assert(R.minCoeff() >= 0);
+//   assert(R.maxCoeff() < ym);
+//   assert(C.minCoeff() >= 0);
+//   assert(C.maxCoeff() < yn);
+// #endif
 
   // create temporary dynamic sparse matrix
   Eigen::DynamicSparseMatrix<T, Eigen::RowMajor>  dyn_Y(Y);
   // Iterate over outside
   for(int k=0; k<X.outerSize(); ++k)
   {
+    if(NTInterrupter::wasInterrupted(interrupter))return;
     // Iterate over inside
     for(typename Eigen::SparseMatrix<T>::InnerIterator it (X,k); it; ++it)
     {
+      if(NTInterrupter::wasInterrupted(interrupter))return;
       dyn_Y.coeffRef(R(it.row()),C(it.col())) = it.value();
     }
   }
@@ -52,7 +54,7 @@ IGL_INLINE void igl::slice_into(
   const Eigen::PlainObjectBase<DerivedX> & X,
   const Eigen::Matrix<int,Eigen::Dynamic,1> & R,
   const Eigen::Matrix<int,Eigen::Dynamic,1> & C,
-  Eigen::PlainObjectBase<DerivedX> & Y)
+  Eigen::PlainObjectBase<DerivedX> & Y,NTInterrupter* interrupter)
 {
 
   int xm = X.rows();
@@ -73,8 +75,10 @@ IGL_INLINE void igl::slice_into(
   RI.resize(xm);
   for(int i = 0;i<xm;i++)
   {
+    if(NTInterrupter::wasInterrupted(interrupter))return;
     for(int j = 0;j<xn;j++)
     {
+      if(NTInterrupter::wasInterrupted(interrupter))return;
       Y(R(i),C(j)) = X(i,j);
     }
   }
@@ -85,7 +89,7 @@ IGL_INLINE void igl::slice_into(
   const Mat& X,
   const Eigen::Matrix<int,Eigen::Dynamic,1> & R,
   const int dim,
-  Mat& Y)
+  Mat& Y,NTInterrupter* interrupter)
 {
   Eigen::VectorXi C;
   switch(dim)
@@ -98,7 +102,7 @@ IGL_INLINE void igl::slice_into(
         return;
       }
       igl::colon(0,X.cols()-1,C);
-      return slice_into(X,R,C,Y);
+      return slice_into(X,R,C,Y,interrupter);
     case 2:
       assert(R.size() == X.cols());
       // boring base case
@@ -107,7 +111,7 @@ IGL_INLINE void igl::slice_into(
         return;
       }
       igl::colon(0,X.rows()-1,C);
-      return slice_into(X,C,R,Y);
+      return slice_into(X,C,R,Y,interrupter);
     default:
       assert(false && "Unsupported dimension");
       return;
@@ -118,13 +122,13 @@ template <typename DerivedX>
 IGL_INLINE void igl::slice_into(
   const Eigen::PlainObjectBase<DerivedX> & X,
   const Eigen::Matrix<int,Eigen::Dynamic,1> & R,
-  Eigen::PlainObjectBase<DerivedX> & Y)
+  Eigen::PlainObjectBase<DerivedX> & Y,NTInterrupter* interrupter)
 {
   // phony column indices
   Eigen::Matrix<int,Eigen::Dynamic,1> C;
   C.resize(1);
   C(0) = 0;
-  return igl::slice_into(X,R,C,Y);
+  return igl::slice_into(X,R,C,Y,interrupter);
 }
 
 #ifdef IGL_STATIC_LIBRARY
@@ -138,9 +142,4 @@ template void igl::slice_into<Eigen::Matrix<double, -1, 1, 0, -1, 1> >(Eigen::Ma
 template void igl::slice_into<Eigen::SparseMatrix<double, 0, int> >(Eigen::SparseMatrix<double, 0, int> const&, Eigen::Matrix<int, -1, 1, 0, -1, 1> const&, int, Eigen::SparseMatrix<double, 0, int>&);
 template void igl::slice_into<Eigen::Matrix<int, -1, 1, 0, -1, 1> >(Eigen::Matrix<int, -1, 1, 0, -1, 1> const&, Eigen::Matrix<int, -1, 1, 0, -1, 1> const&, int, Eigen::Matrix<int, -1, 1, 0, -1, 1>&);
 template void igl::slice_into<Eigen::PlainObjectBase<Eigen::Matrix<double, -1, 1, 0, -1, 1> > >(Eigen::PlainObjectBase<Eigen::Matrix<double, -1, 1, 0, -1, 1> > const&, Eigen::Matrix<int, -1, 1, 0, -1, 1> const&, int, Eigen::PlainObjectBase<Eigen::Matrix<double, -1, 1, 0, -1, 1> >&);
-template void igl::slice_into<Eigen::PlainObjectBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> > >(Eigen::PlainObjectBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> > const&, Eigen::Matrix<int, -1, 1, 0, -1, 1> const&, int, Eigen::PlainObjectBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> >&);
-template void igl::slice_into<Eigen::Matrix<double, -1, -1, 0, -1, -1> >(Eigen::PlainObjectBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> > const&, Eigen::Matrix<int, -1, 1, 0, -1, 1> const&, Eigen::PlainObjectBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> >&);
-template void igl::slice_into<Eigen::Matrix<int, -1, -1, 0, -1, -1> >(Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> > const&, Eigen::Matrix<int, -1, 1, 0, -1, 1> const&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> >&);
-template void igl::slice_into<Eigen::Matrix<int, -1, -1, 0, -1, -1> >(Eigen::Matrix<int, -1, -1, 0, -1, -1> const&, Eigen::Matrix<int, -1, 1, 0, -1, 1> const&, int, Eigen::Matrix<int, -1, -1, 0, -1, -1>&);
-template void igl::slice_into<int>(Eigen::SparseMatrix<int, 0, int> const&, Eigen::Matrix<int, -1, 1, 0, -1, 1> const&, Eigen::Matrix<int, -1, 1, 0, -1, 1> const&, Eigen::SparseMatrix<int, 0, int>&);
 #endif

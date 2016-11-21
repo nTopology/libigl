@@ -8,7 +8,7 @@
 #ifndef IGL_LOCALBASIS_H
 #define IGL_LOCALBASIS_H
 
-#include "igl_inline.h"
+#include "igl/igl_inline.h"
 #include <Eigen/Core>
 #include <string>
 #include <vector>
@@ -34,7 +34,7 @@ namespace igl
     const Eigen::PlainObjectBase<DerivedF>& F,
     Eigen::PlainObjectBase<DerivedV>& B1,
     Eigen::PlainObjectBase<DerivedV>& B2,
-    Eigen::PlainObjectBase<DerivedV>& B3
+    Eigen::PlainObjectBase<DerivedV>& B3,NTInterrupter* interrupter = nullptr
     );
 
 }

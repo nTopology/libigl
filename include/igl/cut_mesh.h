@@ -61,7 +61,7 @@ namespace igl
     const std::vector<bool> &V_border,
     const Eigen::PlainObjectBase<DerivedC> &cuts,
     Eigen::PlainObjectBase<DerivedV> &Vcut,
-    Eigen::PlainObjectBase<DerivedF> &Fcut);
+    Eigen::PlainObjectBase<DerivedF> &Fcut,NTInterrupter* interrupter = nullptr);
   //Wrapper of the above with only vertices and faces as mesh input
   template <typename DerivedV, typename DerivedF, typename DerivedC>
   IGL_INLINE void cut_mesh(
@@ -69,7 +69,7 @@ namespace igl
     const Eigen::PlainObjectBase<DerivedF> &F,
     const Eigen::PlainObjectBase<DerivedC> &cuts,
     Eigen::PlainObjectBase<DerivedV> &Vcut,
-    Eigen::PlainObjectBase<DerivedF> &Fcut);
+    Eigen::PlainObjectBase<DerivedF> &Fcut,NTInterrupter* interrupter = nullptr);
 };
 
 

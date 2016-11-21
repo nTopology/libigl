@@ -12,6 +12,7 @@
 #include "sortrows.h"
 #include "list_to_matrix.h"
 #include "matrix_to_list.h"
+#include "CancelException.h"
 
 #include <algorithm>
 #include <iostream>
@@ -203,15 +204,19 @@ IGL_INLINE void igl::unique_rows(
   const Eigen::PlainObjectBase<DerivedA>& A,
   Eigen::PlainObjectBase<DerivedA>& C,
   Eigen::PlainObjectBase<DerivedIA>& IA,
-  Eigen::PlainObjectBase<DerivedIC>& IC)
+  Eigen::PlainObjectBase<DerivedIC>& IC,
+  NTInterrupter* mInterrupter)
 {
   using namespace std;
   using namespace Eigen;
   VectorXi IM;
   DerivedA sortA;
+  if(NTInterrupter::startSection(mInterrupter, 0.6)) return;
   sortrows(A,true,sortA,IM);
+  if(NTInterrupter::endSection(mInterrupter)) return;
 
 
+  if(NTInterrupter::startSection(mInterrupter, 0.1)) return;
   const int num_rows = sortA.rows();
   const int num_cols = sortA.cols();
   vector<int> vIA(num_rows);
@@ -219,26 +224,40 @@ IGL_INLINE void igl::unique_rows(
   {
     vIA[i] = i;
   }
+  if(NTInterrupter::endSection(mInterrupter)) return;
 
-  auto index_equal = [&sortA, &num_cols](const size_t i, const size_t j) {
-    for (size_t c=0; c<num_cols; c++) {
-      if (sortA.coeff(i,c) != sortA.coeff(j,c))
-        return false;
-    }
-    return true;
+  auto index_equal = [&sortA, &num_cols, &mInterrupter](
+          const size_t i, const size_t j) {
+      if(NTInterrupter::wasInterrupted(mInterrupter)) {
+          throw CancelException("Process canceled");
+      }
+      for (size_t c=0; c<num_cols; c++) {
+          if (sortA.coeff(i,c) != sortA.coeff(j,c))
+              return false;
+      }
+      return true;
   };
-  vIA.erase(
-    std::unique(
-    vIA.begin(),
-    vIA.end(),
-    index_equal
-    ),vIA.end());
+  if(NTInterrupter::startSection(mInterrupter, 0.2)) return;
+  try {
+      vIA.erase(
+        std::unique(
+        vIA.begin(),
+        vIA.end(),
+        index_equal
+        //igl::IndexRowEquals<const Eigen::PlainObjectBase<DerivedA> &>(sortA)
+        ),vIA.end());
+  } catch (CancelException e) {
+      if(NTInterrupter::endSection(mInterrupter)) return;
+  }
+  if(NTInterrupter::endSection(mInterrupter)) return;
 
+  if(NTInterrupter::startSection(mInterrupter, 0.1)) return;
   IC.resize(A.rows(),1);
   {
     int j = 0;
     for(int i = 0;i<num_rows;i++)
     {
+      if(NTInterrupter::wasInterrupted(mInterrupter)) return;
       if(sortA.row(vIA[j]) != sortA.row(i))
       {
         j++;
@@ -252,9 +271,11 @@ IGL_INLINE void igl::unique_rows(
   // Reindex IA according to IM
   for(int i = 0;i<unique_rows;i++)
   {
+    if(NTInterrupter::wasInterrupted(mInterrupter)) return;
     IA(i,0) = IM(vIA[i],0);
     C.row(i) = A.row(IA(i,0));
   }
+  if(NTInterrupter::endSection(mInterrupter)) return;
 }
 
 #ifdef IGL_STATIC_LIBRARY
@@ -279,6 +300,7 @@ template void igl::unique<double>(std::vector<double, std::allocator<double> > c
 template void igl::unique<Eigen::Matrix<int, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, -1, 0, -1, -1> >(Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> > const&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> >&);
 template void igl::unique<Eigen::Matrix<int, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, 1, 0, -1, 1>, Eigen::Matrix<int, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, -1, 0, -1, -1> >(Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> > const&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, 1, 0, -1, 1> >&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> >&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> >&);
 template void igl::unique_rows<Eigen::Matrix<int, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, 1, 0, -1, 1>, Eigen::Matrix<int, -1, -1, 0, -1, -1> >(Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> > const&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> >&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, 1, 0, -1, 1> >&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> >&);
+template void igl::unique<Eigen::Matrix<int, -1, 1, 0, -1, 1>, Eigen::Matrix<int, -1, 1, 0, -1, 1>, Eigen::Matrix<long, -1, 1, 0, -1, 1>, Eigen::Matrix<long, -1, 1, 0, -1, 1> >(Eigen::PlainObjectBase<Eigen::Matrix<int, -1, 1, 0, -1, 1> > const&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, 1, 0, -1, 1> >&, Eigen::PlainObjectBase<Eigen::Matrix<long, -1, 1, 0, -1, 1> >&, Eigen::PlainObjectBase<Eigen::Matrix<long, -1, 1, 0, -1, 1> >&);
 
 #ifdef WIN32
 template void __cdecl igl::unique_rows<class Eigen::Matrix<int, -1, -1, 0, -1, -1>, class Eigen::Matrix<__int64, -1, 1, 0, -1, 1>, class Eigen::Matrix<__int64, -1, 1, 0, -1, 1> >(class Eigen::PlainObjectBase<class Eigen::Matrix<int, -1, -1, 0, -1, -1> > const &, class Eigen::PlainObjectBase<class Eigen::Matrix<int, -1, -1, 0, -1, -1> > &, class Eigen::PlainObjectBase<class Eigen::Matrix<__int64, -1, 1, 0, -1, 1> > &, class Eigen::PlainObjectBase<class Eigen::Matrix<__int64, -1, 1, 0, -1, 1> > &);

@@ -47,7 +47,8 @@ IGL_INLINE igl::lim::State igl::lim::lim(
   bool enableBarriers,
   bool enableAlphaUpdate,
   double beta,
-  double eps)
+  double eps,
+  NTInterrupter *interrupter)
 {
   return (State)ComputeLIM(
     vertices,
@@ -63,7 +64,8 @@ IGL_INLINE igl::lim::State igl::lim::lim(
     enableBarriers,
     enableAlphaUpdate,
     beta,
-    eps
+    eps,
+    interrupter
     );
 }
 

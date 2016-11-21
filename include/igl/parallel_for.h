@@ -9,6 +9,22 @@
 #define IGL_PARALLEL_FOR_H
 #include "igl_inline.h"
 #include <functional>
+#include <cmath>
+#include <cassert>
+#include <thread>
+#include <vector>
+#include <algorithm>
+
+// #ifndef NOMINMAX
+// #define  NOMINMAX
+// #endif // !NOMINMAX
+#ifndef MAX
+#define MAX(a,b)	((a) > (b) ? (a) : (b))
+#endif // !MAX
+
+#ifndef MIN
+#define MIN(a,b)	((a) < (b) ? (a) : (b))
+#endif // !MIN
 
 namespace igl
 {
@@ -86,11 +102,7 @@ namespace igl
 
 // Implementation
 
-#include <cmath>
-#include <cassert>
-#include <thread>
-#include <vector>
-#include <algorithm>
+
 
 template<typename Index, typename FunctionType >
 inline bool igl::parallel_for(
@@ -140,7 +152,7 @@ inline bool igl::parallel_for(
   {
     // Size of a slice for the range functions
     Index slice = 
-      std::max(
+      MAX(
         (Index)std::round((loop_size+1)/static_cast<double>(nthreads)),(Index)1);
  
     // [Helper] Inner loop
@@ -154,14 +166,14 @@ inline bool igl::parallel_for(
     pool.reserve(nthreads);
     // Inner range extents
     Index i1 = 0;
-    Index i2 = std::min(0 + slice, loop_size);
+    Index i2 = MIN((Index)0 + slice, (Index)loop_size);
     {
       size_t t = 0;
       for (; t+1 < nthreads && i1 < loop_size; ++t)
       {
         pool.emplace_back(range, i1, i2, t);
         i1 = i2;
-        i2 = std::min(i2 + slice, loop_size);
+        i2 = MIN((Index)i2 + slice, (Index)loop_size);
       }
       if (i1 < loop_size)
       {

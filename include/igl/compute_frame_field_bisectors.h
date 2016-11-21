@@ -33,7 +33,8 @@ namespace igl
                                                 const Eigen::PlainObjectBase<DerivedV>& PD1,
                                                 const Eigen::PlainObjectBase<DerivedV>& PD2,
                                                 Eigen::PlainObjectBase<DerivedV>& BIS1,
-                                                Eigen::PlainObjectBase<DerivedV>& BIS2);
+                                                Eigen::PlainObjectBase<DerivedV>& BIS2,
+                                                NTInterrupter* interrupter = nullptr);
 
   // Wrapper without given basis vectors.
   template <typename DerivedV, typename DerivedF>
@@ -43,7 +44,8 @@ namespace igl
                                                 const Eigen::PlainObjectBase<DerivedV>& PD1,
                                                 const Eigen::PlainObjectBase<DerivedV>& PD2,
                                                 Eigen::PlainObjectBase<DerivedV>& BIS1,
-                                                Eigen::PlainObjectBase<DerivedV>& BIS2);
+                                                Eigen::PlainObjectBase<DerivedV>& BIS2,
+                                                NTInterrupter* interrupter = nullptr);
 }
 
 #ifndef IGL_STATIC_LIBRARY

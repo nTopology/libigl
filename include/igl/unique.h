@@ -66,7 +66,8 @@ namespace igl
     const Eigen::PlainObjectBase<DerivedA>& A,
     Eigen::PlainObjectBase<DerivedA>& C,
     Eigen::PlainObjectBase<DerivedIA>& IA,
-    Eigen::PlainObjectBase<DerivedIC>& IC);
+    Eigen::PlainObjectBase<DerivedIC>& IC,
+    NTInterrupter* mInterrupter = nullptr);
 }
 
 #ifndef IGL_STATIC_LIBRARY

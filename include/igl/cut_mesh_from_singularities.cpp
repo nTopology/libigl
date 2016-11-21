@@ -30,10 +30,13 @@ namespace igl {
     const Eigen::PlainObjectBase<DerivedM> &Handle_MMatch;
 
     Eigen::VectorXi F_visited;
+//#warning "Constructing Eigen::PlainObjectBase directly is deprecated"
     DerivedF TT;
     DerivedF TTi;
 
     Eigen::MatrixXi E, F2E, E2F;
+    
+    NTInterrupter* mInterrupter;
   protected:
 
     inline bool IsRotSeam(const int f0,const int edge)
@@ -142,13 +145,20 @@ namespace igl {
 
     inline MeshCutter(const Eigen::PlainObjectBase<DerivedV> &V_,
                const Eigen::PlainObjectBase<DerivedF> &F_,
-               const Eigen::PlainObjectBase<DerivedM> &Handle_MMatch_):
+               const Eigen::PlainObjectBase<DerivedM> &Handle_MMatch_,NTInterrupter* interrupter):
     V(V_),
     F(F_),
-    Handle_MMatch(Handle_MMatch_)
+    Handle_MMatch(Handle_MMatch_),
+    mInterrupter(interrupter)
     {
-      triangle_triangle_adjacency(F,TT,TTi);
-      edge_topology(V,F,E,F2E,E2F);
+      if(NTInterrupter::startSection(interrupter,.5))return;
+      triangle_triangle_adjacency(F,TT,TTi,interrupter);
+      if(NTInterrupter::endSection(interrupter))return;
+      
+      if(NTInterrupter::startSection(interrupter,.5))return;
+      edge_topology(V,F,E,F2E,E2F,interrupter);
+      if(NTInterrupter::endSection(interrupter))return;
+
     };
 
     inline void cut(Eigen::PlainObjectBase<DerivedO> &Handle_Seams)
@@ -159,6 +169,7 @@ namespace igl {
       int index=0;
       for (unsigned f = 0; f<F.rows(); f++)
       {
+        if(NTInterrupter::wasInterrupted(mInterrupter,(double)f/F.rows()))return;
         if (!F_visited(f))
         {
           index++;
@@ -187,11 +198,16 @@ template <typename DerivedV,
 IGL_INLINE void igl::cut_mesh_from_singularities(const Eigen::PlainObjectBase<DerivedV> &V,
                                                  const Eigen::PlainObjectBase<DerivedF> &F,
                                                  const Eigen::PlainObjectBase<DerivedM> &Handle_MMatch,
-                                                 Eigen::PlainObjectBase<DerivedO> &Handle_Seams)
+                                                 Eigen::PlainObjectBase<DerivedO> &Handle_Seams,NTInterrupter* interrupter)
 {
-  igl::MeshCutter< DerivedV, DerivedF, DerivedM, DerivedO> mc(V, F, Handle_MMatch);
+  
+  if(NTInterrupter::startSection(interrupter,.25))return;
+  igl::MeshCutter< DerivedV, DerivedF, DerivedM, DerivedO> mc(V, F, Handle_MMatch,interrupter);
+  if(NTInterrupter::endSection(interrupter))return;
+  
+  if(NTInterrupter::startSection(interrupter,.75))return;
   mc.cut(Handle_Seams);
-
+  if(NTInterrupter::endSection(interrupter))return;
 }
 #ifdef IGL_STATIC_LIBRARY
 // Explicit template specialization

@@ -21,7 +21,7 @@ IGL_INLINE void igl::local_basis(
   const Eigen::PlainObjectBase<DerivedF>& F,
   Eigen::PlainObjectBase<DerivedV>& B1,
   Eigen::PlainObjectBase<DerivedV>& B2,
-  Eigen::PlainObjectBase<DerivedV>& B3
+  Eigen::PlainObjectBase<DerivedV>& B3,NTInterrupter* interrupter
   )
 {
   using namespace Eigen;
@@ -32,6 +32,7 @@ IGL_INLINE void igl::local_basis(
 
   for (unsigned i=0;i<F.rows();++i)
   {
+      if(NTInterrupter::wasInterrupted(interrupter,(double)i/F.rows()))return;
       Eigen::Matrix<typename DerivedV::Scalar, 1, 3> v1 = (V.row(F(i,1)) - V.row(F(i,0))).normalized();
       Eigen::Matrix<typename DerivedV::Scalar, 1, 3> t = V.row(F(i,2)) - V.row(F(i,0));
       Eigen::Matrix<typename DerivedV::Scalar, 1, 3> v3 = v1.cross(t).normalized();

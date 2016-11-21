@@ -27,6 +27,8 @@ namespace igl {
 
     // total number of scalar variables
     int num_scalar_variables;
+    
+    NTInterrupter* mInterrupter;
 
     // per face indexes of vertex in the solver
     DerivedF HandleS_Index;
@@ -41,7 +43,7 @@ namespace igl {
                               const std::vector<std::vector<VFType> > &_VF,
                               const std::vector<std::vector<VFType> > &_VFi,
                               const std::vector<bool> &_V_border,
-                              const Eigen::PlainObjectBase<DerivedC> &_Handle_Seams);
+                              const Eigen::PlainObjectBase<DerivedC> &_Handle_Seams,NTInterrupter* interrupter = nullptr);
 
     // vertex to variable mapping
     // initialize the mapping for a given sampled mesh
@@ -80,7 +82,7 @@ MeshCutterMini(const Eigen::PlainObjectBase<DerivedV> &_V,
                const std::vector<std::vector<VFType> > &_VF,
                const std::vector<std::vector<VFType> > &_VFi,
                const std::vector<bool> &_V_border,
-               const Eigen::PlainObjectBase<DerivedC> &_Handle_Seams):
+               const Eigen::PlainObjectBase<DerivedC> &_Handle_Seams,NTInterrupter* interrupter):
 V(_V),
 F(_F),
 TT(_TT),
@@ -88,7 +90,8 @@ TTi(_TTi),
 VF(_VF),
 VFi(_VFi),
 V_border(_V_border),
-Handle_Seams(_Handle_Seams)
+Handle_Seams(_Handle_Seams),
+mInterrupter(interrupter)
 {
   num_scalar_variables=0;
 
@@ -151,6 +154,7 @@ FindInitialPos(const int vert,
   bool complete_turn=false;
   do
   {
+    if(NTInterrupter::wasInterrupted(mInterrupter))return;
     int curr_f = VFI.Fi();
     int curr_edge=VFI.Ei();
     VFI.NextFE();
@@ -195,6 +199,7 @@ MapIndexes(const int  vert,
   bool complete_turn=false;
   do
   {
+    if(NTInterrupter::wasInterrupted(mInterrupter))return;
     int curr_f = VFI.Fi();
     int curr_edge = VFI.Ei();
     ///assing the current index
@@ -232,8 +237,16 @@ InitMappingSeam(const int vert)
 
   int edge_init;
   int face_init;
+  
+  if(NTInterrupter::startSection(mInterrupter,.5))return;
   FindInitialPos(vert,edge_init,face_init);
+  if(NTInterrupter::endSection(mInterrupter))return;
+  
+  if(NTInterrupter::startSection(mInterrupter,.5))return;
   MapIndexes(vert,edge_init,face_init);
+  if(NTInterrupter::endSection(mInterrupter))return;
+
+  
 }
 
 ///vertex to variable mapping
@@ -243,8 +256,11 @@ IGL_INLINE void igl::MeshCutterMini<DerivedV, DerivedF, VFType, DerivedTT, Deriv
 InitMappingSeam()
 {
   num_scalar_variables=-1;
-  for (unsigned int i=0;i<V.rows();i++)
+  for (unsigned int i=0;i<V.rows();i++){
+    if(NTInterrupter::startSection(mInterrupter,1.0/V.rows()))return;
     InitMappingSeam(i);
+    if(NTInterrupter::endSection(mInterrupter))return;
+  }
 
   for (unsigned int j=0;j<V.rows();j++)
     assert(HandleV_Integer[j].size()>0);
@@ -262,23 +278,39 @@ IGL_INLINE void igl::cut_mesh(
                                                                   const std::vector<bool> &V_border,
                                                                   const Eigen::PlainObjectBase<DerivedC> &cuts,
                                                                   Eigen::PlainObjectBase<DerivedV> &Vcut,
-                                                                  Eigen::PlainObjectBase<DerivedF> &Fcut)
+                                                                  Eigen::PlainObjectBase<DerivedF> &Fcut,NTInterrupter* interrupter)
 {
   //finding the cuts is done, now we need to actually generate a cut mesh
-  igl::MeshCutterMini<DerivedV, DerivedF, VFType, DerivedTT, DerivedC> mc(V, F, TT, TTi, VF, VFi, V_border, cuts);
+  
+  if(NTInterrupter::startSection(interrupter,.1))return;
+  igl::MeshCutterMini<DerivedV, DerivedF, VFType, DerivedTT, DerivedC> mc(V, F, TT, TTi, VF, VFi, V_border, cuts,interrupter);
+  if(NTInterrupter::endSection(interrupter))return;
+
+  if(NTInterrupter::startSection(interrupter,.3))return;
   mc.InitMappingSeam();
+  if(NTInterrupter::endSection(interrupter))return;
+
 
   Fcut = mc.HandleS_Index;
   //we have the faces, we need the vertices;
   int newNumV = Fcut.maxCoeff()+1;
   Vcut.setZero(newNumV,3);
-  for (int vi=0; vi<V.rows(); ++vi)
-    for (int i=0; i<mc.HandleV_Integer[vi].size();++i)
+  
+  if(NTInterrupter::startSection(interrupter,.3))return;
+  for (int vi=0; vi<V.rows(); ++vi){
+    if(NTInterrupter::wasInterrupted(interrupter,(double)vi/V.rows()))return;
+    for (int i=0; i<mc.HandleV_Integer[vi].size();++i){
+      if(NTInterrupter::wasInterrupted(interrupter))return;
       Vcut.row(mc.HandleV_Integer[vi][i]) = V.row(vi);
+    }
+  }
+  if(NTInterrupter::endSection(interrupter))return;
 
   //ugly hack to fix some problematic cases (border vertex that is also on the boundary of the hole
-  for (int fi =0; fi<Fcut.rows(); ++fi)
-    for (int k=0; k<3; ++k)
+  if(NTInterrupter::startSection(interrupter,.3))return;
+  for (int fi =0; fi<Fcut.rows(); ++fi){
+    if(NTInterrupter::wasInterrupted(interrupter,(double)fi/Fcut.rows()))return;
+    for (int k=0; k<3; ++k){
       if (Fcut(fi,k)==-1)
       {
         //we need to add a vertex
@@ -287,7 +319,10 @@ IGL_INLINE void igl::cut_mesh(
         Vcut.conservativeResize(newNumV, Eigen::NoChange);
         Vcut.row(newNumV-1) = V.row(F(fi,k));
       }
-
+    }
+  }
+  
+  if(NTInterrupter::endSection(interrupter))return;
 
 }
 
@@ -299,20 +334,20 @@ IGL_INLINE void igl::cut_mesh(
                                                                   const Eigen::PlainObjectBase<DerivedF> &F,
                                                                   const Eigen::PlainObjectBase<DerivedC> &cuts,
                                                                   Eigen::PlainObjectBase<DerivedV> &Vcut,
-                                                                  Eigen::PlainObjectBase<DerivedF> &Fcut)
+                                                                  Eigen::PlainObjectBase<DerivedF> &Fcut,NTInterrupter* interrupter)
 {
 
   std::vector<std::vector<int> > VF, VFi;
-  igl::vertex_triangle_adjacency(V,F,VF,VFi);
+  igl::vertex_triangle_adjacency(V,F,VF,VFi,interrupter);
 
   Eigen::MatrixXd Vt = V;
   Eigen::MatrixXi Ft = F;
   Eigen::MatrixXi TT, TTi;
-  igl::triangle_triangle_adjacency(Ft,TT,TTi);
+  igl::triangle_triangle_adjacency(Ft,TT,TTi,interrupter);
 
   std::vector<bool> V_border = igl::is_border_vertex(V,F);
 
-  igl::cut_mesh(V, F, VF, VFi, TT, TTi, V_border, cuts, Vcut, Fcut);
+  igl::cut_mesh(V, F, VF, VFi, TT, TTi, V_border, cuts, Vcut, Fcut,interrupter);
 
 
 }

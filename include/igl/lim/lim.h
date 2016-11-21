@@ -91,7 +91,8 @@ namespace igl
       bool enableBarriers,
       bool enableAlphaUpdate,
       double beta,
-      double eps);
+      double eps,
+      NTInterrupter *interrupter = nullptr);
   
     State lim(
       Eigen::Matrix<double,Eigen::Dynamic,3>& vertices,

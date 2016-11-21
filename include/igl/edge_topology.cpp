@@ -6,8 +6,8 @@
 // v. 2.0. If a copy of the MPL was not distributed with this file, You can
 // obtain one at http://mozilla.org/MPL/2.0/.
 #include "edge_topology.h"
-#include <algorithm>
 #include "is_edge_manifold.h"
+#include <algorithm>
 
 template<typename DerivedV, typename DerivedF>
 IGL_INLINE void igl::edge_topology(
@@ -15,7 +15,8 @@ IGL_INLINE void igl::edge_topology(
                                    const Eigen::PlainObjectBase<DerivedF>& F,
                                    Eigen::MatrixXi& EV,
                                    Eigen::MatrixXi& FE,
-                                   Eigen::MatrixXi& EF)
+                                   Eigen::MatrixXi& EF,
+                                   NTInterrupter* interrupter)
 {
   // Only needs to be edge-manifold
   if (V.rows() ==0 || F.rows()==0)
@@ -25,9 +26,12 @@ IGL_INLINE void igl::edge_topology(
     EF = Eigen::MatrixXi::Constant(0,2,-1);
     return;
   }
-  assert(igl::is_edge_manifold(V,F));
+  if(NTInterrupter::startSection(interrupter,.25))return;
+  assert(igl::is_edge_manifold(F));
+
   std::vector<std::vector<int> > ETT;
-  for(int f=0;f<F.rows();++f)
+  for(int f=0;f<F.rows();++f){
+    if(NTInterrupter::wasInterrupted(interrupter,(double)f/F.rows()))return;
     for (int i=0;i<3;++i)
     {
       // v1 v2 f vi
@@ -39,21 +43,29 @@ IGL_INLINE void igl::edge_topology(
       r[2] = f;  r[3] = i;
       ETT.push_back(r);
     }
+  }
   std::sort(ETT.begin(),ETT.end());
+  if(NTInterrupter::endSection(interrupter))return;
+  
+  if(NTInterrupter::startSection(interrupter,.25))return;
 
   // count the number of edges (assume manifoldness)
   int En = 1; // the last is always counted
-  for(int i=0;i<int(ETT.size())-1;++i)
-    if (!((ETT[i][0] == ETT[i+1][0]) && (ETT[i][1] == ETT[i+1][1])))
-      ++En;
+  for(int i=0;i<int(ETT.size())-1;++i){
+    if(NTInterrupter::wasInterrupted(interrupter,(double)i/(int(ETT.size())-1)))return;
+    if (!((ETT[i][0] == ETT[i+1][0]) && (ETT[i][1] == ETT[i+1][1])))++En;
+  }
 
   EV = Eigen::MatrixXi::Constant((int)(En),2,-1);
   FE = Eigen::MatrixXi::Constant((int)(F.rows()),3,-1);
   EF = Eigen::MatrixXi::Constant((int)(En),2,-1);
   En = 0;
-
+  if(NTInterrupter::endSection(interrupter))return;
+  
+  if(NTInterrupter::startSection(interrupter,.25))return;
   for(unsigned i=0;i<ETT.size();++i)
   {
+    if(NTInterrupter::wasInterrupted(interrupter,(double)i/ETT.size()))return;
     if (i == ETT.size()-1 ||
         !((ETT[i][0] == ETT[i+1][0]) && (ETT[i][1] == ETT[i+1][1]))
         )
@@ -79,11 +91,16 @@ IGL_INLINE void igl::edge_topology(
     }
     ++En;
   }
+  if(NTInterrupter::endSection(interrupter))return;
+
 
   // Sort the relation EF, accordingly to EV
   // the first one is the face on the left of the edge
+  
+  if(NTInterrupter::startSection(interrupter,.25))return;
   for(unsigned i=0; i<EF.rows(); ++i)
   {
+    if(NTInterrupter::wasInterrupted(interrupter,(double)i/EF.size()))return;
     int fid = EF(i,0);
     bool flip = true;
     // search for edge EV.row(i)
@@ -100,6 +117,8 @@ IGL_INLINE void igl::edge_topology(
       EF(i,1) = tmp;
     }
   }
+  if(NTInterrupter::endSection(interrupter))return;
+
 
 }
 

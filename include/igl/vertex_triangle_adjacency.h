@@ -36,13 +36,13 @@ namespace igl
     const typename DerivedF::Scalar n,
     const Eigen::PlainObjectBase<DerivedF>& F,
     std::vector<std::vector<VFType> >& VF,
-    std::vector<std::vector<VFiType> >& VFi);
+    std::vector<std::vector<VFiType> >& VFi,NTInterrupter* interrupter = nullptr);
   template <typename DerivedV, typename DerivedF, typename IndexType>
   IGL_INLINE void vertex_triangle_adjacency(
     const Eigen::PlainObjectBase<DerivedV>& V,
     const Eigen::PlainObjectBase<DerivedF>& F,
     std::vector<std::vector<IndexType> >& VF,
-    std::vector<std::vector<IndexType> >& VFi);
+    std::vector<std::vector<IndexType> >& VFi,NTInterrupter* interrupter = nullptr);
 }
 
 #ifndef IGL_STATIC_LIBRARY

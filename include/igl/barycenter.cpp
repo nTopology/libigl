@@ -14,12 +14,13 @@ template <
 IGL_INLINE void igl::barycenter(
     const Eigen::PlainObjectBase<DerivedV> & V,
     const Eigen::PlainObjectBase<DerivedF> & F,
-    Eigen::PlainObjectBase<DerivedBC> & BC)
+    Eigen::PlainObjectBase<DerivedBC> & BC,NTInterrupter* interrupter)
 {
   BC.setZero(F.rows(),V.cols());
   // Loop over faces
   for(int i = 0;i<F.rows();i++)
   {
+    if(NTInterrupter::wasInterrupted(interrupter,(double)i/F.rows()))return;
     // loop around face
     for(int j = 0;j<F.cols();j++)
     {

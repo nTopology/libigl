@@ -34,7 +34,8 @@ namespace igl
     Eigen::PlainObjectBase<DerivedE> & E,
     Eigen::PlainObjectBase<DeriveduE> & uE,
     Eigen::PlainObjectBase<DerivedEMAP> & EMAP,
-    std::vector<std::vector<uE2EType> > & uE2E);
+    std::vector<std::vector<uE2EType> > & uE2E,
+    NTInterrupter* mInterrupter = nullptr);
 
 }
 #ifndef IGL_STATIC_LIBRARY

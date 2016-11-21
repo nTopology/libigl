@@ -33,7 +33,7 @@ namespace igl {
     // internal
     DerivedF TT;
     DerivedF TTi;
-
+    NTInterrupter* mInterrupter;
 
   private:
 
@@ -64,15 +64,22 @@ namespace igl {
     inline Comb(const Eigen::PlainObjectBase<DerivedV> &_V,
          const Eigen::PlainObjectBase<DerivedF> &_F,
          const Eigen::PlainObjectBase<DerivedV> &_PD1,
-         const Eigen::PlainObjectBase<DerivedV> &_PD2
+         const Eigen::PlainObjectBase<DerivedV> &_PD2,
+         NTInterrupter* interrupter
          ):
     V(_V),
     F(_F),
     PD1(_PD1),
-    PD2(_PD2)
+    PD2(_PD2),
+    mInterrupter(interrupter)
     {
+      if(NTInterrupter::startSection(interrupter,.5))return;
       igl::per_face_normals(V,F,N);
-      igl::triangle_triangle_adjacency(F,TT,TTi);
+      if(NTInterrupter::endSection(interrupter))return;
+      
+      if(NTInterrupter::startSection(interrupter,.5))return;
+      igl::triangle_triangle_adjacency(F,TT,TTi,interrupter);
+      if(NTInterrupter::endSection(interrupter))return;
     }
     inline void comb(Eigen::PlainObjectBase<DerivedV> &PD1out,
               Eigen::PlainObjectBase<DerivedV> &PD2out)
@@ -91,10 +98,12 @@ namespace igl {
 
       while (!d.empty())
       {
+         if(NTInterrupter::wasInterrupted(mInterrupter))return;
         int f0 = d.at(0);
         d.pop_front();
         for (int k=0; k<3; k++)
         {
+          if(NTInterrupter::wasInterrupted(mInterrupter))return;
           int f1 = TT(f0,k);
           if (f1==-1) continue;
           if (mark(f1)) continue;
@@ -121,6 +130,7 @@ namespace igl {
       // everything should be marked
       for (int i=0; i<F.rows(); i++)
       {
+        if(NTInterrupter::wasInterrupted(mInterrupter))return;
         assert(mark(i));
       }
     }
@@ -135,10 +145,16 @@ IGL_INLINE void igl::comb_cross_field(const Eigen::PlainObjectBase<DerivedV> &V,
                                       const Eigen::PlainObjectBase<DerivedV> &PD1,
                                       const Eigen::PlainObjectBase<DerivedV> &PD2,
                                       Eigen::PlainObjectBase<DerivedV> &PD1out,
-                                      Eigen::PlainObjectBase<DerivedV> &PD2out)
+                                      Eigen::PlainObjectBase<DerivedV> &PD2out,
+                                      NTInterrupter* interrupter)
 {
-  igl::Comb<DerivedV, DerivedF> cmb(V, F, PD1, PD2);
+  if(NTInterrupter::startSection(interrupter,.25))return;
+  igl::Comb<DerivedV, DerivedF> cmb(V, F, PD1, PD2,interrupter);
+  if(NTInterrupter::endSection(interrupter))return;
+
+  if(NTInterrupter::startSection(interrupter,.75))return;
   cmb.comb(PD1out, PD2out);
+  if(NTInterrupter::endSection(interrupter))return;
 }
 
 #ifdef IGL_STATIC_LIBRARY

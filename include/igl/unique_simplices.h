@@ -28,13 +28,15 @@ namespace igl
     const Eigen::PlainObjectBase<DerivedF>& F,
     Eigen::PlainObjectBase<DerivedFF>& FF,
     Eigen::PlainObjectBase<DerivedIA>& IA,
-    Eigen::PlainObjectBase<DerivedIC>& IC);
+    Eigen::PlainObjectBase<DerivedIC>& IC,
+    NTInterrupter* mInterrupter = nullptr);
   template <
     typename DerivedF,
     typename DerivedFF>
   IGL_INLINE void unique_simplices(
     const Eigen::PlainObjectBase<DerivedF>& F,
-    Eigen::PlainObjectBase<DerivedFF>& FF);
+    Eigen::PlainObjectBase<DerivedFF>& FF,
+    NTInterrupter* mInterrupter = nullptr);
 }
 
 #ifndef IGL_STATIC_LIBRARY

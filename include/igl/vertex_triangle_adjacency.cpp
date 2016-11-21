@@ -12,7 +12,7 @@ IGL_INLINE void igl::vertex_triangle_adjacency(
   const typename DerivedF::Scalar n,
   const Eigen::PlainObjectBase<DerivedF>& F,
   std::vector<std::vector<VFType> >& VF,
-  std::vector<std::vector<VFiType> >& VFi)
+  std::vector<std::vector<VFiType> >& VFi,NTInterrupter* interrupter)
 {
   VF.clear();
   VFi.clear();
@@ -23,8 +23,10 @@ IGL_INLINE void igl::vertex_triangle_adjacency(
   typedef typename DerivedF::Index Index;
   for(Index fi=0; fi<F.rows(); ++fi)
   {
+    if(NTInterrupter::wasInterrupted(interrupter))return;
     for(Index i = 0; i < F.cols(); ++i)
     {
+      if(NTInterrupter::wasInterrupted(interrupter))return;
       VF[F(fi,i)].push_back(fi);
       VFi[F(fi,i)].push_back(i);
     }
@@ -37,9 +39,9 @@ IGL_INLINE void igl::vertex_triangle_adjacency(
   const Eigen::PlainObjectBase<DerivedV>& V,
   const Eigen::PlainObjectBase<DerivedF>& F,
   std::vector<std::vector<IndexType> >& VF,
-  std::vector<std::vector<IndexType> >& VFi)
+  std::vector<std::vector<IndexType> >& VFi,NTInterrupter* interrupter)
 {
-  return vertex_triangle_adjacency(V.rows(),F,VF,VFi);
+  return vertex_triangle_adjacency(V.rows(),F,VF,VFi,interrupter);
 }
 
 #ifdef IGL_STATIC_LIBRARY

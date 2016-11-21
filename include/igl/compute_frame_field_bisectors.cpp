@@ -23,35 +23,36 @@ IGL_INLINE void igl::compute_frame_field_bisectors(
                                                    const Eigen::PlainObjectBase<DerivedV>& PD1,
                                                    const Eigen::PlainObjectBase<DerivedV>& PD2,
                                                    Eigen::PlainObjectBase<DerivedV>& BIS1,
-                                                   Eigen::PlainObjectBase<DerivedV>& BIS2)
+                                                   Eigen::PlainObjectBase<DerivedV>& BIS2,NTInterrupter* interrupter)
 {
   BIS1.resize(PD1.rows(),3);
   BIS2.resize(PD1.rows(),3);
 
   for (unsigned i=0; i<PD1.rows();++i)
   {
+    if(NTInterrupter::wasInterrupted(interrupter,(double)i/PD1.rows()))return;
     // project onto the tangent plane and convert to angle
     // Convert to angle
     double a1 = atan2(B2.row(i).dot(PD1.row(i)),B1.row(i).dot(PD1.row(i)));
     //make it positive by adding some multiple of 2pi
-    a1 += ceil (std::max(0., -a1) / (M_PI*2.)) * (M_PI*2.);
+    a1 += std::ceil (std::max(0., -a1) / (M_PI*2.)) * (M_PI*2.);
     //take modulo 2pi
     a1 = fmod(a1, (M_PI*2.));
     double a2 = atan2(B2.row(i).dot(PD2.row(i)),B1.row(i).dot(PD2.row(i)));
     //make it positive by adding some multiple of 2pi
-    a2 += ceil (std::max(0., -a2) / (M_PI*2.)) * (M_PI*2.);
+    a2 += std::ceil (std::max(0., -a2) / (M_PI*2.)) * (M_PI*2.);
     //take modulo 2pi
     a2 = fmod(a2, (M_PI*2.));
 
     double b1 = (a1+a2)/2.0;
     //make it positive by adding some multiple of 2pi
-    b1 += ceil (std::max(0., -b1) / (M_PI*2.)) * (M_PI*2.);
+    b1 += std::ceil (std::max(0., -b1) / (M_PI*2.)) * (M_PI*2.);
     //take modulo 2pi
     b1 = fmod(b1, (M_PI*2.));
 
     double b2 = b1+(M_PI/2.);
     //make it positive by adding some multiple of 2pi
-    b2 += ceil (std::max(0., -b2) / (M_PI*2.)) * (M_PI*2.);
+    b2 += std::ceil (std::max(0., -b2) / (M_PI*2.)) * (M_PI*2.);
     //take modulo 2pi
     b2 = fmod(b2, (M_PI*2.));
 
@@ -68,12 +69,12 @@ IGL_INLINE void igl::compute_frame_field_bisectors(
                                                    const Eigen::PlainObjectBase<DerivedV>& PD1,
                                                    const Eigen::PlainObjectBase<DerivedV>& PD2,
                                                    Eigen::PlainObjectBase<DerivedV>& BIS1,
-                                                   Eigen::PlainObjectBase<DerivedV>& BIS2)
+                                                   Eigen::PlainObjectBase<DerivedV>& BIS2,NTInterrupter* interrupter)
 {
   DerivedV B1, B2, B3;
   igl::local_basis(V,F,B1,B2,B3);
 
-  compute_frame_field_bisectors( V, F, B1, B2, PD1, PD2, BIS1, BIS2);
+  compute_frame_field_bisectors( V, F, B1, B2, PD1, PD2, BIS1, BIS2,interrupter);
 
 }
 

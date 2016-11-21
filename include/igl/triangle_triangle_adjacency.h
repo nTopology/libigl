@@ -7,7 +7,7 @@
 // obtain one at http://mozilla.org/MPL/2.0/.
 #ifndef IGL_TRIANGLE_TRIANGLE_ADJACENCY_H
 #define IGL_TRIANGLE_TRIANGLE_ADJACENCY_H
-#include <igl/igl_inline.h>
+#include "igl_inline.h"
 #include <Eigen/Core>
 #include <vector>
 
@@ -33,28 +33,28 @@ namespace igl
   IGL_INLINE void triangle_triangle_adjacency(
     const Eigen::PlainObjectBase<DerivedF>& F,
     Eigen::PlainObjectBase<DerivedTT>& TT,
-    Eigen::PlainObjectBase<DerivedTTi>& TTi);
+    Eigen::PlainObjectBase<DerivedTTi>& TTi,NTInterrupter* mInterrupter = nullptr);
   template <typename DerivedF, typename DerivedTT>
   IGL_INLINE void triangle_triangle_adjacency(
     const Eigen::PlainObjectBase<DerivedF>& F,
-    Eigen::PlainObjectBase<DerivedTT>& TT);
+    Eigen::PlainObjectBase<DerivedTT>& TT,NTInterrupter* mInterrupter = nullptr);
   // Preprocessing
   template <typename DerivedF, typename TTT_type>
   IGL_INLINE void triangle_triangle_adjacency_preprocess(
     const Eigen::PlainObjectBase<DerivedF>& F,
-    std::vector<std::vector<TTT_type> >& TTT);
+    std::vector<std::vector<TTT_type> >& TTT,NTInterrupter* mInterrupter = nullptr);
   // Extract the face adjacencies
   template <typename DerivedF, typename TTT_type, typename DerivedTT>
   IGL_INLINE void triangle_triangle_adjacency_extractTT(
     const Eigen::PlainObjectBase<DerivedF>& F,
     std::vector<std::vector<TTT_type> >& TTT,
-    Eigen::PlainObjectBase<DerivedTT>& TT);
+    Eigen::PlainObjectBase<DerivedTT>& TT,NTInterrupter* mInterrupter = nullptr);
   // Extract the face adjacencies indices (needed for fast traversal)
   template <typename DerivedF, typename TTT_type, typename DerivedTTi>
   IGL_INLINE void triangle_triangle_adjacency_extractTTi(
     const Eigen::PlainObjectBase<DerivedF>& F,
     std::vector<std::vector<TTT_type> >& TTT,
-    Eigen::PlainObjectBase<DerivedTTi>& TTi);
+    Eigen::PlainObjectBase<DerivedTTi>& TTi,NTInterrupter* mInterrupter = nullptr);
   // Adjacency list version, which works with non-manifold meshes
   //
   // Inputs:
@@ -73,11 +73,11 @@ namespace igl
     IGL_INLINE void triangle_triangle_adjacency(
       const Eigen::PlainObjectBase<DerivedF> & F,
       std::vector<std::vector<std::vector<TTIndex> > > & TT,
-      std::vector<std::vector<std::vector<TTiIndex> > > & TTi);
+      std::vector<std::vector<std::vector<TTiIndex> > > & TTi,NTInterrupter* mInterrupter = nullptr);
   template < typename DerivedF, typename TTIndex>
     IGL_INLINE void triangle_triangle_adjacency(
       const Eigen::PlainObjectBase<DerivedF> & F,
-      std::vector<std::vector<std::vector<TTIndex> > > & TT);
+      std::vector<std::vector<std::vector<TTIndex> > > & TT,NTInterrupter* mInterrupter = nullptr);
   // Wrapper with bool to choose whether to compute TTi (this prototype should
   // be "hidden").
   template <
@@ -88,7 +88,7 @@ namespace igl
       const Eigen::PlainObjectBase<DerivedF> & F,
       const bool construct_TTi,
       std::vector<std::vector<std::vector<TTIndex> > > & TT,
-      std::vector<std::vector<std::vector<TTiIndex> > > & TTi);
+      std::vector<std::vector<std::vector<TTiIndex> > > & TTi,NTInterrupter* mInterrupter = nullptr);
   // Inputs:
   //   E  #F*3 by 2 list of all of directed edges in order (see `all_edges`)
   //   EMAP #F*3 list of indices into uE, mapping each directed edge to unique
@@ -107,7 +107,7 @@ namespace igl
       const std::vector<std::vector<uE2EType > > & uE2E,
       const bool construct_TTi,
       std::vector<std::vector<std::vector<TTIndex> > > & TT,
-      std::vector<std::vector<std::vector<TTiIndex> > > & TTi);
+      std::vector<std::vector<std::vector<TTiIndex> > > & TTi,NTInterrupter* mInterrupter = nullptr);
 }
 
 #ifndef IGL_STATIC_LIBRARY

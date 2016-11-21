@@ -12,15 +12,20 @@
 template <typename DerivedF, typename DerivedC>
 IGL_INLINE void igl::facet_components(
   const Eigen::PlainObjectBase<DerivedF> & F,
-  Eigen::PlainObjectBase<DerivedC> & C)
+  Eigen::PlainObjectBase<DerivedC> & C,
+  NTInterrupter* mInterrupter)
 {
   using namespace std;
   typedef typename DerivedF::Index Index;
   vector<vector<vector<Index > > > TT;
   vector<vector<vector<Index > > > TTi;
-  triangle_triangle_adjacency(F,TT,TTi);
+  if (NTInterrupter::startSection(mInterrupter, 0.8)) return;
+  triangle_triangle_adjacency(F,TT,TTi, mInterrupter);
+  if (NTInterrupter::endSection(mInterrupter)) return;
   Eigen::VectorXi counts;
-  return facet_components(TT,C,counts);
+  if (NTInterrupter::startSection(mInterrupter, 0.2)) return;
+  facet_components(TT,C,counts, mInterrupter);
+  if (NTInterrupter::endSection(mInterrupter)) return;
 }
 
 template <
@@ -30,7 +35,8 @@ template <
 IGL_INLINE void igl::facet_components(
   const std::vector<std::vector<std::vector<TTIndex > > > & TT,
   Eigen::PlainObjectBase<DerivedC> & C,
-  Eigen::PlainObjectBase<Derivedcounts> & counts)
+  Eigen::PlainObjectBase<Derivedcounts> & counts,
+  NTInterrupter* mInterrupter)
 {
   using namespace std;
   typedef TTIndex Index;
@@ -41,6 +47,8 @@ IGL_INLINE void igl::facet_components(
   vector<Index> vcounts;
   for(Index g = 0;g<m;g++)
   {
+    if(NTInterrupter::wasInterrupted(
+          mInterrupter, double(g)/double(m)))return;
     if(seen[g])
     {
       continue;
@@ -88,5 +96,4 @@ IGL_INLINE void igl::facet_components(
 // Explicit template specialization
 template void igl::facet_components<long, Eigen::Matrix<long, -1, 1, 0, -1, 1>, Eigen::Matrix<long, -1, 1, 0, -1, 1> >(std::vector<std::vector<std::vector<long, std::allocator<long> >, std::allocator<std::vector<long, std::allocator<long> > > >, std::allocator<std::vector<std::vector<long, std::allocator<long> >, std::allocator<std::vector<long, std::allocator<long> > > > > > const&, Eigen::PlainObjectBase<Eigen::Matrix<long, -1, 1, 0, -1, 1> >&, Eigen::PlainObjectBase<Eigen::Matrix<long, -1, 1, 0, -1, 1> >&);
 template void igl::facet_components<int, Eigen::Matrix<int, -1, 1, 0, -1, 1>, Eigen::Matrix<int, -1, 1, 0, -1, 1> >(std::vector<std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > >, std::allocator<std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > > > > const&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, 1, 0, -1, 1> >&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, 1, 0, -1, 1> >&);
-template void igl::facet_components<Eigen::Matrix<int, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, 1, 0, -1, 1> >(Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> > const&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, 1, 0, -1, 1> >&);
 #endif

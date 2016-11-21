@@ -29,7 +29,7 @@ namespace igl
                                                  const Eigen::PlainObjectBase<DerivedF> &F,
                                                  const Eigen::PlainObjectBase<DerivedM> &Handle_MMatch,
                                                  Eigen::PlainObjectBase<DerivedO> &isSingularity,
-                                                 Eigen::PlainObjectBase<DerivedO> &singularityIndex);
+                                                 Eigen::PlainObjectBase<DerivedO> &singularityIndex,NTInterrupter* interrupter = nullptr);
 
   // Wrapper that calculates the missmatch if it is not provided.
   // Note that the field in PD1 and PD2 MUST BE combed (see igl::comb_cross_field).
@@ -49,7 +49,7 @@ namespace igl
                                                  const Eigen::PlainObjectBase<DerivedV> &PD2,
                                                  Eigen::PlainObjectBase<DerivedO> &isSingularity,
                                                  Eigen::PlainObjectBase<DerivedO> &singularityIndex,
-                                                 bool isCombed = false);
+                                                 bool isCombed = false,NTInterrupter* interrupter = nullptr);
 }
 #ifndef IGL_STATIC_LIBRARY
 #include "find_cross_field_singularities.cpp"
