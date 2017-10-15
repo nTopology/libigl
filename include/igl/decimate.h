@@ -1,9 +1,9 @@
 // This file is part of libigl, a simple c++ geometry processing library.
-// 
+//
 // Copyright (C) 2016 Alec Jacobson <alecjacobson@gmail.com>
-// 
-// This Source Code Form is subject to the terms of the Mozilla Public License 
-// v. 2.0. If a copy of the MPL was not distributed with this file, You can 
+//
+// This Source Code Form is subject to the terms of the Mozilla Public License
+// v. 2.0. If a copy of the MPL was not distributed with this file, You can
 // obtain one at http://mozilla.org/MPL/2.0/.
 #ifndef IGL_DECIMATE_H
 #define IGL_DECIMATE_H
@@ -99,8 +99,6 @@ namespace igl
     Eigen::MatrixXi & G,
     Eigen::VectorXi & J,
     Eigen::VectorXi & I);
-<<<<<<< HEAD
-=======
 
   // Inputs:
   //   pre_collapse  callback called with index of edge whose collapse is about
@@ -247,8 +245,6 @@ namespace igl
     Eigen::MatrixXi & G,
     Eigen::VectorXi & J,
     Eigen::VectorXi & I);
->>>>>>> 2d7e665bed2543ccc29e6450f4036a661e308f9f
-
 }
 
 #ifndef IGL_STATIC_LIBRARY

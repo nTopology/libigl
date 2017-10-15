@@ -1,9 +1,9 @@
 // This file is part of libigl, a simple c++ geometry processing library.
-// 
+//
 // Copyright (C) 2015 Alec Jacobson <alecjacobson@gmail.com>
-// 
-// This Source Code Form is subject to the terms of the Mozilla Public License 
-// v. 2.0. If a copy of the MPL was not distributed with this file, You can 
+//
+// This Source Code Form is subject to the terms of the Mozilla Public License
+// v. 2.0. If a copy of the MPL was not distributed with this file, You can
 // obtain one at http://mozilla.org/MPL/2.0/.
 #include "crouzeix_raviart_massmatrix.h"
 #include "unique_simplices.h"
@@ -18,8 +18,8 @@
 
 template <typename MT, typename DerivedV, typename DerivedF, typename DerivedE, typename DerivedEMAP>
 void igl::crouzeix_raviart_massmatrix(
-    const Eigen::MatrixBase<DerivedV> & V, 
-    const Eigen::MatrixBase<DerivedF> & F, 
+    const Eigen::MatrixBase<DerivedV> & V,
+    const Eigen::MatrixBase<DerivedF> & F,
     Eigen::SparseMatrix<MT> & M,
     Eigen::PlainObjectBase<DerivedE> & E,
     Eigen::PlainObjectBase<DerivedEMAP> & EMAP)
@@ -34,23 +34,18 @@ void igl::crouzeix_raviart_massmatrix(
 
 template <typename MT, typename DerivedV, typename DerivedF, typename DerivedE, typename DerivedEMAP>
 void igl::crouzeix_raviart_massmatrix(
-    const Eigen::MatrixBase<DerivedV> & V, 
-    const Eigen::MatrixBase<DerivedF> & F, 
+    const Eigen::MatrixBase<DerivedV> & V,
+    const Eigen::MatrixBase<DerivedF> & F,
     const Eigen::MatrixBase<DerivedE> & E,
     const Eigen::MatrixBase<DerivedEMAP> & EMAP,
     Eigen::SparseMatrix<MT> & M)
 {
   using namespace Eigen;
   using namespace std;
-<<<<<<< HEAD
-  assert(F.cols() == 3);
-  // Mesh should be edge-manifold
-  assert(is_edge_manifold(F));
-=======
+
   // Mesh should be edge-manifold (TODO: replace `is_edge_manifold` with
   // `is_facet_manifold`)
   assert(F.cols() != 3 || is_edge_manifold(F));
->>>>>>> 2d7e665bed2543ccc29e6450f4036a661e308f9f
   // number of elements (triangles)
   const int m = F.rows();
   // Get triangle areas/volumes

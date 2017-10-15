@@ -1,9 +1,9 @@
 // This file is part of libigl, a simple c++ geometry processing library.
-// 
+//
 // Copyright (C) 2016 Alec Jacobson <alecjacobson@gmail.com>
-// 
-// This Source Code Form is subject to the terms of the Mozilla Public License 
-// v. 2.0. If a copy of the MPL was not distributed with this file, You can 
+//
+// This Source Code Form is subject to the terms of the Mozilla Public License
+// v. 2.0. If a copy of the MPL was not distributed with this file, You can
 // obtain one at http://mozilla.org/MPL/2.0/.
 #include <igl/cut_mesh.h>
 #include <igl/vertex_triangle_adjacency.h>
@@ -36,7 +36,7 @@ namespace igl {
 
     // total number of scalar variables
     int num_scalar_variables;
-    
+
     NTInterrupter* mInterrupter;
 
     // per face indexes of vertex in the solver
@@ -45,16 +45,6 @@ namespace igl {
     // per vertex variable indexes
     std::vector<std::vector<int> > HandleV_Integer;
 
-<<<<<<< HEAD
-    IGL_INLINE MeshCutterMini(const Eigen::PlainObjectBase<DerivedV> &_V,
-                              const Eigen::PlainObjectBase<DerivedF> &_F,
-                              const Eigen::PlainObjectBase<DerivedTT> &_TT,
-                              const Eigen::PlainObjectBase<DerivedTT> &_TTi,
-                              const std::vector<std::vector<VFType> > &_VF,
-                              const std::vector<std::vector<VFType> > &_VFi,
-                              const std::vector<bool> &_V_border,
-                              const Eigen::PlainObjectBase<DerivedC> &_Handle_Seams,NTInterrupter* interrupter = nullptr);
-=======
     IGL_INLINE MeshCutterMini(
       const Eigen::PlainObjectBase<DerivedV> &_V,
       const Eigen::PlainObjectBase<DerivedF> &_F,
@@ -63,8 +53,7 @@ namespace igl {
       const std::vector<std::vector<VFType> > &_VF,
       const std::vector<std::vector<VFType> > &_VFi,
       const std::vector<bool> &_V_border,
-      const Eigen::PlainObjectBase<DerivedC> &_Handle_Seams);
->>>>>>> 2d7e665bed2543ccc29e6450f4036a661e308f9f
+      const Eigen::PlainObjectBase<DerivedC> &_Handle_Seams,NTInterrupter* interrupter = nullptr);
 
     // vertex to variable mapping
     // initialize the mapping for a given sampled mesh
@@ -96,25 +85,6 @@ namespace igl {
 
 template <typename DerivedV, typename DerivedF, typename VFType, typename DerivedTT, typename DerivedC>
 IGL_INLINE igl::MeshCutterMini<DerivedV, DerivedF, VFType, DerivedTT, DerivedC>::
-<<<<<<< HEAD
-MeshCutterMini(const Eigen::PlainObjectBase<DerivedV> &_V,
-               const Eigen::PlainObjectBase<DerivedF> &_F,
-               const Eigen::PlainObjectBase<DerivedTT> &_TT,
-               const Eigen::PlainObjectBase<DerivedTT> &_TTi,
-               const std::vector<std::vector<VFType> > &_VF,
-               const std::vector<std::vector<VFType> > &_VFi,
-               const std::vector<bool> &_V_border,
-               const Eigen::PlainObjectBase<DerivedC> &_Handle_Seams,NTInterrupter* interrupter):
-V(_V),
-F(_F),
-TT(_TT),
-TTi(_TTi),
-VF(_VF),
-VFi(_VFi),
-V_border(_V_border),
-Handle_Seams(_Handle_Seams),
-mInterrupter(interrupter)
-=======
 MeshCutterMini(
   const Eigen::PlainObjectBase<DerivedV> &_V,
   const Eigen::PlainObjectBase<DerivedF> &_F,
@@ -123,7 +93,7 @@ MeshCutterMini(
   const std::vector<std::vector<VFType> > &_VF,
   const std::vector<std::vector<VFType> > &_VFi,
   const std::vector<bool> &_V_border,
-  const Eigen::PlainObjectBase<DerivedC> &_Handle_Seams):
+  const Eigen::PlainObjectBase<DerivedC> &_Handle_Seams,NTInterrupter* interrupter):
   V(_V),
   F(_F),
   TT(_TT),
@@ -131,8 +101,8 @@ MeshCutterMini(
   VF(_VF),
   VFi(_VFi),
   V_border(_V_border),
-  Handle_Seams(_Handle_Seams)
->>>>>>> 2d7e665bed2543ccc29e6450f4036a661e308f9f
+  Handle_Seams(_Handle_Seams),
+mInterrupter(interrupter)
 {
   num_scalar_variables=0;
   HandleS_Index.setConstant(F.rows(),3,-1);
@@ -276,16 +246,16 @@ InitMappingSeam(const int vert)
 
   int edge_init;
   int face_init;
-  
+
   if(NTInterrupter::startSection(mInterrupter,.5))return;
   FindInitialPos(vert,edge_init,face_init);
   if(NTInterrupter::endSection(mInterrupter))return;
-  
+
   if(NTInterrupter::startSection(mInterrupter,.5))return;
   MapIndexes(vert,edge_init,face_init);
   if(NTInterrupter::endSection(mInterrupter))return;
 
-  
+
 }
 
 ///vertex to variable mapping
@@ -308,18 +278,6 @@ InitMappingSeam()
 
 template <typename DerivedV, typename DerivedF, typename VFType, typename DerivedTT, typename DerivedC>
 IGL_INLINE void igl::cut_mesh(
-<<<<<<< HEAD
-                                                                  const Eigen::PlainObjectBase<DerivedV> &V,
-                                                                  const Eigen::PlainObjectBase<DerivedF> &F,
-                                                                  const std::vector<std::vector<VFType> >& VF,
-                                                                  const std::vector<std::vector<VFType> >& VFi,
-                                                                  const Eigen::PlainObjectBase<DerivedTT>& TT,
-                                                                  const Eigen::PlainObjectBase<DerivedTT>& TTi,
-                                                                  const std::vector<bool> &V_border,
-                                                                  const Eigen::PlainObjectBase<DerivedC> &cuts,
-                                                                  Eigen::PlainObjectBase<DerivedV> &Vcut,
-                                                                  Eigen::PlainObjectBase<DerivedF> &Fcut,NTInterrupter* interrupter)
-=======
   const Eigen::PlainObjectBase<DerivedV> &V,
   const Eigen::PlainObjectBase<DerivedF> &F,
   const std::vector<std::vector<VFType> >& VF,
@@ -329,11 +287,10 @@ IGL_INLINE void igl::cut_mesh(
   const std::vector<bool> &V_border,
   const Eigen::PlainObjectBase<DerivedC> &cuts,
   Eigen::PlainObjectBase<DerivedV> &Vcut,
-  Eigen::PlainObjectBase<DerivedF> &Fcut)
->>>>>>> 2d7e665bed2543ccc29e6450f4036a661e308f9f
+  Eigen::PlainObjectBase<DerivedF> &Fcut,NTInterrupter* interrupter)
 {
   //finding the cuts is done, now we need to actually generate a cut mesh
-  
+
   if(NTInterrupter::startSection(interrupter,.1))return;
   igl::MeshCutterMini<DerivedV, DerivedF, VFType, DerivedTT, DerivedC> mc(V, F, TT, TTi, VF, VFi, V_border, cuts,interrupter);
   if(NTInterrupter::endSection(interrupter))return;
@@ -347,7 +304,7 @@ IGL_INLINE void igl::cut_mesh(
   //we have the faces, we need the vertices;
   int newNumV = Fcut.maxCoeff()+1;
   Vcut.setZero(newNumV,3);
-  
+
   if(NTInterrupter::startSection(interrupter,.3))return;
   for (int vi=0; vi<V.rows(); ++vi){
     if(NTInterrupter::wasInterrupted(interrupter,(double)vi/V.rows()))return;
@@ -373,7 +330,7 @@ IGL_INLINE void igl::cut_mesh(
       }
     }
   }
-  
+
   if(NTInterrupter::endSection(interrupter))return;
 
 }
@@ -382,44 +339,22 @@ IGL_INLINE void igl::cut_mesh(
 //Wrapper of the above with only vertices and faces as mesh input
 template <typename DerivedV, typename DerivedF, typename DerivedC>
 IGL_INLINE void igl::cut_mesh(
-<<<<<<< HEAD
-                                                                  const Eigen::PlainObjectBase<DerivedV> &V,
-                                                                  const Eigen::PlainObjectBase<DerivedF> &F,
-                                                                  const Eigen::PlainObjectBase<DerivedC> &cuts,
-                                                                  Eigen::PlainObjectBase<DerivedV> &Vcut,
-                                                                  Eigen::PlainObjectBase<DerivedF> &Fcut,NTInterrupter* interrupter)
-=======
   const Eigen::PlainObjectBase<DerivedV> &V,
   const Eigen::PlainObjectBase<DerivedF> &F,
   const Eigen::PlainObjectBase<DerivedC> &cuts,
   Eigen::PlainObjectBase<DerivedV> &Vcut,
-  Eigen::PlainObjectBase<DerivedF> &Fcut)
->>>>>>> 2d7e665bed2543ccc29e6450f4036a661e308f9f
+  Eigen::PlainObjectBase<DerivedF> &Fcut,NTInterrupter* interrupter)
 {
   std::vector<std::vector<int> > VF, VFi;
-<<<<<<< HEAD
+
   igl::vertex_triangle_adjacency(V,F,VF,VFi,interrupter);
-
-  Eigen::MatrixXd Vt = V;
-  Eigen::MatrixXi Ft = F;
-  Eigen::MatrixXi TT, TTi;
-  igl::triangle_triangle_adjacency(Ft,TT,TTi,interrupter);
-
-  std::vector<bool> V_border = igl::is_border_vertex(V,F);
-
-  igl::cut_mesh(V, F, VF, VFi, TT, TTi, V_border, cuts, Vcut, Fcut,interrupter);
-
-
-=======
-  igl::vertex_triangle_adjacency(V,F,VF,VFi);
   // Alec: Cast? Why? This is likely to break.
   Eigen::MatrixXd Vt = V;
   Eigen::MatrixXi Ft = F;
   Eigen::MatrixXi TT, TTi;
-  igl::triangle_triangle_adjacency(Ft,TT,TTi);
+  igl::triangle_triangle_adjacency(Ft,TT,TTi,interrupter);
   std::vector<bool> V_border = igl::is_border_vertex(V,F);
-  igl::cut_mesh(V, F, VF, VFi, TT, TTi, V_border, cuts, Vcut, Fcut);
->>>>>>> 2d7e665bed2543ccc29e6450f4036a661e308f9f
+  igl::cut_mesh(V, F, VF, VFi, TT, TTi, V_border, cuts, Vcut, Fcut,interrupter);
 }
 
 #ifdef IGL_STATIC_LIBRARY

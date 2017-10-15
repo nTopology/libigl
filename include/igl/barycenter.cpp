@@ -12,15 +12,10 @@ template <
   typename DerivedF,
   typename DerivedBC>
 IGL_INLINE void igl::barycenter(
-<<<<<<< HEAD
-    const Eigen::PlainObjectBase<DerivedV> & V,
-    const Eigen::PlainObjectBase<DerivedF> & F,
-    Eigen::PlainObjectBase<DerivedBC> & BC,NTInterrupter* interrupter)
-=======
     const Eigen::MatrixBase<DerivedV> & V,
     const Eigen::MatrixBase<DerivedF> & F,
-    Eigen::PlainObjectBase<DerivedBC> & BC)
->>>>>>> 2d7e665bed2543ccc29e6450f4036a661e308f9f
+    Eigen::PlainObjectBase<DerivedBC> & BC,
+    NTInterrupter* interrupter)
 {
   BC.setZero(F.rows(),V.cols());
   // Loop over faces

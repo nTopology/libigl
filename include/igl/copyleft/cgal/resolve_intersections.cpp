@@ -1,19 +1,16 @@
 // This file is part of libigl, a simple c++ geometry processing library.
-// 
+//
 // Copyright (C) 2016 Alec Jacobson <alecjacobson@gmail.com>
-// 
-// This Source Code Form is subject to the terms of the Mozilla Public License 
-// v. 2.0. If a copy of the MPL was not distributed with this file, You can 
+//
+// This Source Code Form is subject to the terms of the Mozilla Public License
+// v. 2.0. If a copy of the MPL was not distributed with this file, You can
 // obtain one at http://mozilla.org/MPL/2.0/.
 #include "resolve_intersections.h"
 #include "subdivide_segments.h"
 #include "row_to_point.h"
 #include "../../unique.h"
 #include "../../list_to_matrix.h"
-<<<<<<< HEAD
 #include "../../copyleft/cgal/assign_scalar.h"
-=======
->>>>>>> 2d7e665bed2543ccc29e6450f4036a661e308f9f
 #include <CGAL/Exact_predicates_exact_constructions_kernel.h>
 #include <CGAL/Segment_2.h>
 #include <CGAL/Point_2.h>
@@ -21,9 +18,9 @@
 #include <vector>
 
 template <
-  typename DerivedV, 
-  typename DerivedE, 
-  typename DerivedVI, 
+  typename DerivedV,
+  typename DerivedE,
+  typename DerivedVI,
   typename DerivedEI,
   typename DerivedJ,
   typename DerivedIM>
