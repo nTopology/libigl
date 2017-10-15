@@ -36,7 +36,7 @@
 namespace nanogui { class FormHelper; class Screen; }
 #endif
 
-class GLFWwindow;
+struct GLFWwindow;
 
 namespace igl
 {
@@ -119,7 +119,8 @@ namespace viewer
     IGL_INLINE void draw();
 
     // OpenGL context resize
-    IGL_INLINE void resize(int w,int h);
+    IGL_INLINE void resize(int w,int h); // explicitly set window size
+    IGL_INLINE void post_resize(int w,int h); // external resize due to user interaction
 
     // Helper functions
     IGL_INLINE void snap_to_canonical_quaternion();

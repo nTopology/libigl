@@ -38,8 +38,7 @@ namespace igl {
       Eigen::VectorXi indInteriorToFull;
       Eigen::VectorXi indFullToInterior;
 
-//#warning "Constructing Eigen::PlainObjectBase directly is deprecated"
-      Eigen::PlainObjectBase<DerivedV> B1, B2, FN;
+      DerivedV B1, B2, FN;
 
       //laplacians
       Eigen::SparseMatrix<std::complex<typename DerivedV::Scalar>> DDA, DDB;
@@ -155,7 +154,7 @@ precomputeInteriorEdges()
   // Flag border edges
   numInteriorEdges = 0;
   isBorderEdge.setZero(numE,1);
-  indFullToInterior = -1.*Eigen::VectorXi::Ones(numE,1);
+  indFullToInterior = Eigen::VectorXi::Constant(numE,-1);
 
   for(unsigned i=0; i<numE; ++i)
   {
@@ -756,5 +755,5 @@ IGL_INLINE bool igl::angle_bound_frame_fields(const igl::AngleBoundFFSolverData<
 }
 
 #ifdef IGL_STATIC_LIBRARY
-// Explicit template specialization
+// Explicit template instantiation
 #endif

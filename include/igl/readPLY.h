@@ -11,6 +11,7 @@
 #include <Eigen/Core>
 #include <string>
 #include <vector>
+#include <cstdio>
 
 namespace igl
 {
@@ -30,18 +31,33 @@ namespace igl
     typename Ntype,
     typename UVtype>
   IGL_INLINE bool readPLY(
-    const std::string & filename,
+    const std::string filename,
     std::vector<std::vector<Vtype> > & V,
     std::vector<std::vector<Ftype> > & F,
     std::vector<std::vector<Ntype> > & N,
     std::vector<std::vector<UVtype> >  & UV);
   template <
+    typename Vtype,
+    typename Ftype,
+    typename Ntype,
+    typename UVtype>
+  // Inputs:
+  //   ply_file  pointer to already opened .ply file 
+  // Outputs:
+  //   ply_file  closed file
+  IGL_INLINE bool readPLY(
+    FILE * ply_file,
+    std::vector<std::vector<Vtype> > & V,
+    std::vector<std::vector<Ftype> > & F,
+    std::vector<std::vector<Ntype> > & N,
+    std::vector<std::vector<UVtype> >  & UV);
+    template <
     typename DerivedV,
     typename DerivedF,
     typename DerivedN,
     typename DerivedUV>
   IGL_INLINE bool readPLY(
-    const std::string & filename,
+    const std::string filename,
     Eigen::PlainObjectBase<DerivedV> & V,
     Eigen::PlainObjectBase<DerivedF> & F,
     Eigen::PlainObjectBase<DerivedN> & N,
@@ -50,7 +66,7 @@ namespace igl
     typename DerivedV,
     typename DerivedF>
   IGL_INLINE bool readPLY(
-    const std::string & filename,
+    const std::string filename,
     Eigen::PlainObjectBase<DerivedV> & V,
     Eigen::PlainObjectBase<DerivedF> & F);
 }

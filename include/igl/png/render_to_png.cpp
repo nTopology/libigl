@@ -6,9 +6,9 @@
 // v. 2.0. If a copy of the MPL was not distributed with this file, You can
 // obtain one at http://mozilla.org/MPL/2.0/.
 #include "render_to_png.h"
-#include <stb_image_write.h>
+#include <igl_stb_image.h>
 
-#include "../opengl/OpenGL_convenience.h"
+#include "../opengl/gl.h"
 
 IGL_INLINE bool igl::png::render_to_png(
   const std::string png_file,
@@ -35,11 +35,11 @@ IGL_INLINE bool igl::png::render_to_png(
       data[4*(i+j*width)+3] = 255;
     }
   }
-  bool ret = stbi_write_png(png_file.c_str(), width, height, 4, data, 4*width*sizeof(unsigned char));
+  bool ret = igl::stbi_write_png(png_file.c_str(), width, height, 4, data, 4*width*sizeof(unsigned char));
   delete [] data;
   return ret;
 }
 
 #ifdef IGL_STATIC_LIBRARY
-// Explicit template specialization
+// Explicit template instantiation
 #endif

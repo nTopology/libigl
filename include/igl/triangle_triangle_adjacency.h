@@ -7,7 +7,7 @@
 // obtain one at http://mozilla.org/MPL/2.0/.
 #ifndef IGL_TRIANGLE_TRIANGLE_ADJACENCY_H
 #define IGL_TRIANGLE_TRIANGLE_ADJACENCY_H
-#include <igl/igl_inline.h>
+#include "igl_inline.h"
 #include <Eigen/Core>
 #include <vector>
 
@@ -16,19 +16,16 @@ namespace igl
   // Constructs the triangle-triangle adjacency matrix for a given
   // mesh (V,F).
   //
-  // Templates:
-  //   Scalar derived type of eigen matrix for V (e.g. derived from
-  //     MatrixXd)
-  //   Index  derived type of eigen matrix for F (e.g. derived from
-  //     MatrixXi)
   // Inputs:
   //   F  #F by simplex_size list of mesh faces (must be triangles)
   // Outputs:
-  //   TT   #F by #3 adjacent matrix, the element i,j is the id of the triangle adjacent to the j edge of triangle i
-  //   TTi  #F by #3 adjacent matrix, the element i,j is the id of edge of the triangle TT(i,j) that is adjacent with triangle i
-  // NOTE: the first edge of a triangle is [0,1] the second [1,2] and the third [2,3].
-  //       this convention is DIFFERENT from cotmatrix_entries.h
-  // Known bug: this should not need to take V as input.
+  //   TT   #F by #3 adjacent matrix, the element i,j is the id of the triangle
+  //        adjacent to the j edge of triangle i
+  //   TTi  #F by #3 adjacent matrix, the element i,j is the id of edge of the
+  //        triangle TT(i,j) that is adjacent with triangle i
+  //
+  // NOTE: the first edge of a triangle is [0,1] the second [1,2] and the third
+  //       [2,3].  this convention is DIFFERENT from cotmatrix_entries.h
   template <typename DerivedF, typename DerivedTT, typename DerivedTTi>
   IGL_INLINE void triangle_triangle_adjacency(
     const Eigen::PlainObjectBase<DerivedF>& F,
@@ -90,11 +87,12 @@ namespace igl
       std::vector<std::vector<std::vector<TTIndex> > > & TT,
       std::vector<std::vector<std::vector<TTiIndex> > > & TTi);
   // Inputs:
-  //   E  #F*3 by 2 list of all of directed edges in order (see `all_edges`)
+  //   E  #F*3 by 2 list of all of directed edges in order (see
+  //     `oriented_facets`)
   //   EMAP #F*3 list of indices into uE, mapping each directed edge to unique
   //     undirected edge
   //   uE2E  #uE list of lists of indices into E of coexisting edges
-  // See also: unique_edge_map, all_edges
+  // See also: unique_edge_map, oriented_facets
   template <
     typename DerivedE, 
     typename DerivedEMAP,

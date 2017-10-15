@@ -8,11 +8,8 @@
 #ifndef IGL_OPENGL_CREATE_MESH_VBO_H
 #define IGL_OPENGL_CREATE_MESH_VBO_H
 #include "../igl_inline.h"
-// NOTE: It wouldn't be so hard to template this using Eigen's templates
-
+#include "gl.h"
 #include <Eigen/Core>
-
-#include "OpenGL_convenience.h"
 
 // Create a VBO (Vertex Buffer Object) for a mesh. Actually two VBOs: one 
 // GL_ARRAY_BUFFER for the vertex positions (V) and one
@@ -24,7 +21,7 @@ namespace igl
   
     // Inputs:
     //   V  #V by 3 eigen Matrix of mesh vertex 3D positions
-    //   F  #F by 3 eigne Matrix of face (triangle) indices
+    //   F  #F by 3 eigen Matrix of face (triangle) indices
     // Outputs:
     //   V_vbo_id  buffer id for vertex positions
     //   F_vbo_id  buffer id for face indices
@@ -40,7 +37,7 @@ namespace igl
   
     // Inputs:
     //   V  #V by 3 eigen Matrix of mesh vertex 3D positions
-    //   F  #F by 3 eigne Matrix of face (triangle) indices
+    //   F  #F by 3 eigen Matrix of face (triangle) indices
     //   N  #V by 3 eigen Matrix of mesh vertex 3D normals
     // Outputs:
     //   V_vbo_id  buffer id for vertex positions

@@ -6,7 +6,7 @@
 // v. 2.0. If a copy of the MPL was not distributed with this file, You can 
 // obtain one at http://mozilla.org/MPL/2.0/.
 #include "trim_with_solid.h"
-#include "assign_scalar.h"
+#include "assign.h"
 #include "intersect_other.h"
 #include "point_solid_signed_squared_distance.h"
 
@@ -88,19 +88,18 @@ IGL_INLINE void igl::copyleft::cgal::trim_with_solid(
   }
   Eigen::VectorXi _;
   igl::remove_unreferenced(MatrixX3E(V),DerivedF(F),V,F,_);
-  const auto & assign = [](
-    const MatrixX3E & V, 
-    Eigen::PlainObjectBase<DerivedV> & Vd)
-  {
-    Vd.resize(V.rows(),3);
-    for(int v = 0;v<V.rows();v++)
-    {
-      for(int d = 0;d<3;d++) 
-      {
-        igl::copyleft::cgal::assign_scalar(V(v,d),Vd(v,d));
-      }
-    }
-  };
   assign(V,Vd);
 }
 
+
+#ifdef IGL_STATIC_LIBRARY
+template void igl::copyleft::cgal::trim_with_solid<Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, -1, 0, -1,
+  -1>, Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, -1, 0, -1, -1>, Eigen::Matrix<double, -1, -1, 0,
+  -1, -1>, Eigen::Matrix<int, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, 1, 0, -1, 1>, Eigen::Matrix<int, -1, 1, 0, -1, 1>
+  >(Eigen::PlainObjectBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> > const&, Eigen::PlainObjectBase<Eigen::Matrix<int,
+  -1, -1, 0, -1, -1> > const&, Eigen::PlainObjectBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> > const&,
+  Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> > const&, Eigen::PlainObjectBase<Eigen::Matrix<double, -1,
+  -1, 0, -1, -1> >&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> >&,
+  Eigen::PlainObjectBase<Eigen::Matrix<int, -1, 1, 0, -1, 1> >&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, 1, 0, -1,
+  1> >&);
+#endif
