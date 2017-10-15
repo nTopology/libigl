@@ -10,7 +10,10 @@
 #include "row_to_point.h"
 #include "../../unique.h"
 #include "../../list_to_matrix.h"
+<<<<<<< HEAD
 #include "../../copyleft/cgal/assign_scalar.h"
+=======
+>>>>>>> 2d7e665bed2543ccc29e6450f4036a661e308f9f
 #include <CGAL/Exact_predicates_exact_constructions_kernel.h>
 #include <CGAL/Segment_2.h>
 #include <CGAL/Point_2.h>

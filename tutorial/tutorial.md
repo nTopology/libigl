@@ -102,6 +102,9 @@ lecture notes links to a cross-platform example application.
     * [707 Swept Volume](#sweptvolume)
     * [708 Picking Vertices and Faces](#pickingverticesandfaces)
     * [709 Vector Field Visualization](#vectorfieldvisualizer)
+    * [710 Scalable Locally Injective Maps](#slim)
+    * [711 Subdivision surfaces](#subdivision)
+    * [712 Data smoothing](#datasmoothing)
 * [Chapter 8: Outlook for continuing development](#future)
 
 # Chapter 1 [chapter1:introductiontolibigl]
@@ -173,7 +176,11 @@ sudo apt-get install libxrandr-dev
 sudo apt-get install libxi-dev
 sudo apt-get install libxmu-dev
 sudo apt-get install libblas-dev
+sudo apt-get install libxinerama-dev
+sudo apt-get install libxcursor-dev
 ```
+*Note for windows users*: libigl only supports the Microsoft Visual Studio 2015 compiler in 64bit mode. It will not work with a 32bit build and it will not work
+with older versions of visual studio.
 
 A few examples in Chapter 5 requires the [CoMiSo
 solver](http://www.graphics.rwth-aachen.de/software/comiso). We provide a
@@ -191,6 +198,10 @@ compile CoMISo.
 
 *Note 2*: CoMISo requires a blas implementation. We use the built-in blas in macosx and linux, and we bundle a precompiled binary for VS2015 64 bit. Do NOT compile the tutorials
 in 32 bit on windows.
+
+### libigl example project
+
+We provide a [blank project example](https://github.com/libigl/libigl-example-project) showing how to use libigl and cmake. Feel free and encouraged to copy or fork this project as a way of starting a new personal project using libigl.
 
 ## [Mesh representation](#meshrepresentation) [meshrepresentation]
 
@@ -444,7 +455,7 @@ viewer.callback_init = [&](igl::viewer::Viewer& viewer)
   viewer.ngui->addButton("Print Hello",[](){ std::cout << "Hello\n"; });
 
   // call to generate menu
-  viewer.ngui->layout();
+  viewer.screen->performLayout();
   return false;
 };
 
@@ -856,29 +867,46 @@ functionality as common Matlab functions.
 
 | Name                     | Description                                                                         |
 | :----------------------- | :---------------------------------------------------------------------------------- |
-| `igl::any_of`            | Whether any elements are non-zero (true)                                            |
+| `igl::all`               | Whether all elements are non-zero (true)                                            |
+| `igl::any`               | Whether any elements are non-zero (true)                                            |
 | `igl::cat`               | Concatenate two matrices (especially useful for dealing with Eigen sparse matrices) |
 | `igl::ceil`              | Round entries up to nearest integer |
 | `igl::cumsum`            | Cumulative sum of matrix elements |
 | `igl::colon`             | Act like Matlab's `:`, similar to Eigen's `LinSpaced` |
+| `igl::components`        | Connected components of graph (cf. Matlab's `graphconncomp`) |
+| `igl::count`             | Count non-zeros in rows or columns |
 | `igl::cross`             | Cross product per-row |
+| `igl::cumsum`            | Cummulative summation |
 | `igl::dot`               | dot product per-row |
+| `igl::eigs`              | Solve sparse eigen value problem |
 | `igl::find`              | Find subscripts of non-zero entries |
 | `igl::floor`             | Round entries down to nearest integer |
 | `igl::histc`             | Counting occurrences for building a histogram |
 | `igl::hsv_to_rgb`        | Convert HSV colors to RGB (cf. Matlab's `hsv2rgb`) |
 | `igl::intersect`         | Set intersection of matrix elements. |
 | `igl::isdiag`            | Determine whether matrix is diagonal |
+| `igl::ismember`          | Determine whether elements in A occur in B |
 | `igl::jet`               | Quantized colors along the rainbow. |
+| `igl::max`               | Compute maximum entry per row or column |
 | `igl::median`            | Compute the median per column |
+| `igl::min`               | Compute minimum entry per row or column |
+| `igl::mod`               | Compute per element modulo |
 | `igl::mode`              | Compute the mode per column |
 | `igl::null`              | Compute the null space basis of a matrix |
 | `igl::nchoosek`          | Compute all k-size combinations of n-long vector |
 | `igl::orth`              | Orthogonalization of a basis |
 | `igl::parula`            | Generate a quantized colormap from blue to yellow |
+| `igl::pinv`              | Compute Moore-Penrose pseudoinverse |
 | `igl::randperm`          | Generate a random permutation of [0,...,n-1] |
 | `igl::rgb_to_hsv`        | Convert RGB colors to HSV (cf. Matlab's `rgb2hsv`) |
+| `igl::repmat`            | Repeat a matrix along columns and rows |
+| `igl::round`             | Per-element round to whole number |
 | `igl::setdiff`           | Set difference of matrix elements |
+| `igl::setunion`          | Set union of matrix elements |
+| `igl::setxor`            | Set exclusive "or" of matrix elements |
+| `igl::slice`             | Slice parts of matrix using index lists: (cf. Matlab's `B = A(I,J)`)
+| `igl::slice_mask`        | Slice parts of matrix using boolean masks: (cf. Matlab's `B = A(M,N)`)
+| `igl::slice_into`        | Slice left-hand side of matrix assignment using index lists (cf. Matlab's `B(I,J) = A`)
 | `igl::sort`              | Sort elements or rows of matrix |
 | `igl::speye`             | Identity as sparse matrix |
 | `igl::sum`               | Sum along columns or rows (of sparse matrix) |
@@ -1522,11 +1550,11 @@ Libigl, supports these common flavors. Selecting one is a matter of setting the
 energy type before the precompuation phase:
 
 ```cpp
-igl::ARAPData data;
+igl::ARAPData arap_data;
 arap_data.energy = igl::ARAP_ENERGY_TYPE_SPOKES;
 //arap_data.energy = igl::ARAP_ENERGY_TYPE_SPOKES_AND_RIMS;
 //arap_data.energy = igl::ARAP_ENERGY_TYPE_ELEMENTS; //triangles or tets
-igl::arap_precomputation(V,F,dim,b,data);
+igl::arap_precomputation(V,F,dim,b,arap_data);
 ```
 
 Just like `igl::min_quad_with_fixed_*`, this precomputation phase only depends
@@ -1534,7 +1562,7 @@ on the mesh, fixed vertex indices `b` and the energy parameters. To solve with
 certain constraints on the positions of vertices in `b`, we may call:
 
 ```cpp
-igl::arap_solve(bc,data,U);
+igl::arap_solve(bc,arap_data,U);
 ```
 
 which uses `U` as an initial guess and then computes the solution into it.
@@ -2407,7 +2435,7 @@ points contained in holes of the triangulation (#H by 2) and (`V2`,`F2`) is the
 generated triangulation. Additional parameters can be passed to `triangle`, to
 control the quality: `"a0.005q"` enforces a bound on the maximal area of the
 triangles and a minimal angle of 20 degrees. In [Example
-604](604_Triangle/main.m), the interior of a square (excluded a smaller square
+604](604_Triangle/main.cpp), the interior of a square (excluded a smaller square
 in its interior) is triangulated.
 
 ![Triangulation of the interior of a polygon.](images/604_Triangle.png)
@@ -2416,7 +2444,7 @@ in its interior) is triangulated.
 
 Similarly, the interior of a closed manifold surface can be tetrahedralized
 using the function `igl::tetrahedralize` which wraps the Tetgen library ([Example
-605](605_Tetgen/main.c)):
+605](605_Tetgen/main.cpp)):
 
 ```cpp
 igl::tetrahedralize(V,F,"pq1.414", TV,TT,TF);
@@ -2613,13 +2641,6 @@ then the final composite.
 
 ![Example [610](610_CSGTree/main.cpp) computes  complex CSG Tree operation on 5
 input meshes.](images/cube-sphere-cylinders-csg.gif)
-
-# Miscellaneous [chapter7:miscellaneous]
-
-Libigl contains a _wide_ variety of geometry processing tools and functions for
-dealing with meshes and the linear algebra related to them: far too many to
-discuss in this introductory tutorial. We've pulled out a couple of the
-interesting functions in this chapter to highlight.
 
 ## [Mesh Statistics](#meshstatistics) [meshstatistics]
 
@@ -3118,6 +3139,111 @@ in [Example 709](709_VectorFieldVisualizer/main.cpp).
 
 ![([Example 709](709_VectorFieldVisualizer/main.cpp)) Interactive streamlines tracing.](images/streamlines.jpg)
 
+## [Scalable Locally Injective Maps](#slim) [slim]
+
+The Scalable Locally Injective Maps [#rabinovich_2016] algorithm allows to
+compute locally injective maps on massive datasets. The algorithm shares many
+similarities with ARAP, but uses a reweighting scheme to minimize arbitrary
+distortion energies, including those that prevent the introduction of flips.
+
+[Example 710](710_SLIM/main.cpp) contains three demos: (1) an example of large
+scale 2D parametrization, (2) an example of 2D deformation with soft
+constraints, and (3) an example of 3D deformation with soft constraints. The
+implementation in libigl is self-contained and relies on Eigen for the solution
+of the linear system used in the global step. An optimized version that relies
+on Pardiso is available
+[here](https://github.com/MichaelRabinovich/Scalable-Locally-Injective-Mappings).
+
+![A locally injective parametrization of a mesh with 50k faces is computed
+using the SLIM algorithm in 10 iterations.](images/slim.png)
+
+## [Subdivision surfaces](#subdivision) [subdivision]
+
+Given a coarse mesh (aka cage) with vertices `V` and faces `F`, one can createa
+higher-resolution mesh with more vertices and faces by _subdividing_ every
+face. That is, each coarse triangle in the input is replaced by many smaller
+triangles. Libigl has three different methods for subdividing a triangle mesh.
+
+An "in plane" subdivision method will not change the point set or carrier
+surface of the mesh. New vertices are added on the planes of existing triangles
+and vertices surviving from the original mesh are not moved.
+
+By adding new faces, a subdivision algorithm changes the _combinatorics_ of the
+mesh. The change in combinatorics and the formula for positioning the
+high-resolution vertices is called the "subdivision rule".
+
+For example, in the _in plane_ subdivision method of `igl::upsample`, vertices
+are added at the midpoint of every edge: $v_{ab} = \frac{1}{2}(v_a + v_b)$ and
+each triangle $(i_a,i_b,i_c)$ is replaced with four triangles:
+$(i_a,i_{ab},i_{ca})$, $(i_b,i_{bc},i_{ab})$, $(i_{ab},i_{bc},i_{ca})$, and
+$(i_{bc},i_{c},i_{ca})$. This process may be applied recursively, resulting in
+a finer and finer mesh.
+
+The subdivision method of `igl::loop` is not in plane. The vertices of the
+refined mesh are moved to weight combinations of their neighbors: the mesh is
+smoothed as it is refined [#loop_1987]. This and other _smooth subdivision_
+methods can be understood as generalizations of spline curves to surfaces. In
+particular the Loop subdivision method will converge to a $C^1$ surface as we
+consider the limit of recursive applications of subdivision. Away from
+"irregular" or "extraordinary" vertices (vertices of the original cage with
+valence not equal to 6), the surface is $C^2$. The combinatorics (connectivity
+and number of faces) of `igl::loop` and `igl::upsample` are identical: the only
+difference is that the vertices have been smoothed in `igl::loop`.
+
+Finally, libigl also implements a form of _in plane_ "false barycentric
+subdivision" in `igl::false_barycentric_subdivision`. This method simply adds
+the barycenter of every triangle as a new vertex $v_{abc}$ and replaces each
+triangle with three triangles $(i_a,i_b,i_{abc})$, $(i_b,i_c,i_{abc})$, and
+$(i_c,i_a,i_{abc})$. In contrast to `igl::upsample`, this method will create
+triangles with smaller and smaller internal angles and new vertices will sample
+the carrier surfaces with extreme bias.
+
+![The original coarse mesh and three different subdivision methods:
+`igl::upsample`, `igl::loop` and
+`igl::false_barycentric_subdivision`.](images/decimated-knight-subdivision.gif)
+
+## [Data smoothing](#datasmoothing) [datasmoothing]
+
+A noisy function $f$ defined on a surface $\Omega$ can be smoothed using an
+energy minimization that balances a smoothing term $E_S$ with a quadratic
+fitting term:
+
+$u = \operatorname{argmin}_u \alpha E_S(u) + (1-\alpha)\int_\Omega ||u-f||^2 dx$
+
+The parameter $\alpha$ determines how aggressively the function is smoothed.
+
+A classical choice for the smoothness energy is the Laplacian energy of the
+function with zero Neumann boundary conditions, which is a form of the
+biharmonic energy. It is constructed using the cotangent Laplacian `L` and
+the mass matrix `M`: `QL = L'*(M\L)`. Because of the implicit zero Neumann
+boundary conditions however, the function behavior is significantly warped at
+the boundary if $f$ does not have zero normal gradient at the boundary.
+
+In #[stein_2017] it is suggested to use the Biharmonic energy with natural
+Hessian boundary conditions instead, which corresponds to the hessian energy
+with the matrix `QH = H'*(M2\H)`, where `H` is a finite element Hessian and
+`M2` is a stacked mass matrix. The matrices `H` and `QH` are implemented in
+libigl as `igl::hessian` and `igl::hessian_energy` respectively. An example
+of how to use the function is given in [Example 712](712_DataSmoothing/main.cpp).
+
+In the following image the differences between the Laplacian energy with
+zero Neumann boundary conditions and the Hessian energy can be clearly seen:
+whereas the zero Neumann boundary condition in the third image bias the isolines
+of the function to be perpendicular to the boundary, the Hessian energy gives
+an unbiased result.
+
+![([Example 712](712_DataSmoothing/main.cpp)) From left to right: a function
+on the beetle mesh, the function with added noise, the result of smoothing
+with the Laplacian energy and zero Neumann boundary conditions, and the
+result of smoothing with the Hessian energy.](images/712_beetles.jpg)
+
+# Miscellaneous [chapter7:miscellaneous]
+
+Libigl contains a _wide_ variety of geometry processing tools and functions for
+dealing with meshes and the linear algebra related to them: far too many to
+discuss in this introductory tutorial. We've pulled out a couple of the
+interesting functions in this chapter to highlight.
+
 # Outlook for continuing development [future]
 
 Libigl is in active development, and we plan to focus on the following features
@@ -3242,6 +3368,9 @@ pseudonormal](https://www.google.com/search?q=Signed+distance+computation+using+
   Wang.  [General Planar Quadrilateral Mesh Design Using Conjugate Direction
   Field](http://research.microsoft.com/en-us/um/people/yangliu/publication/cdf.pdf),
   2008.
+[#loop_1987]: Charles Loop. [Smooth Subdivision Surfaces Based on
+  Triangles](https://www.google.com/search?q=smooth+subdivision+surfaces+based+on+triangles),
+  1987.
 [#lorensen_1987]: W.E. Lorensen and Harvey E. Cline. [Marching cubes: A high
   resolution 3d surface construction
   algorithm](https://www.google.com/search?q=Marching+cubes:+A+high+resolution+3d+surface+construction+algorithm),
@@ -3264,8 +3393,11 @@ pseudonormal](https://www.google.com/search?q=Signed+distance+computation+using+
   2010.
 [#panozzo_2014]: Daniele Panozzo, Enrico Puppo, Marco Tarini, Olga
   Sorkine-Hornung.  [Frame Fields: Anisotropic and Non-Orthogonal Cross
-  Fields](http://www.inf.ethz.ch/personal/dpanozzo/papers/frame-fields-2014.pdf),
+  Fields](http://cs.nyu.edu/~panozzo/papers/frame-fields-2014.pdf),
   2014.
+[#rabinovich_2016]: Michael Rabinovich, Roi Poranne, Daniele Panozzo, Olga
+  Sorkine-Hornung. [Scalable Locally Injective
+  Mappings](http://cs.nyu.edu/~panozzo/papers/SLIM-2016.pdf), 2016.
 [#rustamov_2011]: Raid M. Rustamov, [Multiscale Biharmonic
   Kernels](https://www.google.com/search?q=Multiscale+Biharmonic+Kernels), 2011.
 [#schroeder_1994]: William J. Schroeder, William E. Lorensen, and Steve
@@ -3284,6 +3416,9 @@ pseudonormal](https://www.google.com/search?q=Signed+distance+computation+using+
   Editing](https://www.google.com/search?q=Laplacian+Surface+Editing), 2004.
 [#sorkine_2007]: Olga Sorkine and Marc Alexa. [As-rigid-as-possible Surface
   Modeling](https://www.google.com/search?q=As-rigid-as-possible+Surface+Modeling), 2007.
+[#stein_2017]: Oded Stein, Eitan Grinspun, Max Wardetzky, Alec Jacobson.
+  [Natural Boundary Conditions for Smoothing in Geometry Processing](https://arxiv.org/abs/1707.04348),
+  2017.
 [#takayama14]: Kenshi Takayama, Alec Jacobson, Ladislav Kavan, Olga
   Sorkine-Hornung. [A Simple Method for Correcting Facet Orientations in
   Polygon Meshes Based on Ray
@@ -3293,6 +3428,11 @@ pseudonormal](https://www.google.com/search?q=Signed+distance+computation+using+
   Manifold
   Harmonics](https://www.google.com/search?q=Spectral+Geometry+Processing+with+Manifold+Harmonics),
   2008.
+[#vaxman_2016]: Amir Vaxman, Marcel Campen, Olga Diamanti, Daniele Panozzo,
+  David Bommes, Klaus Hildebrandt, Mirela Ben-Chen. [Directional Field
+  Synthesis, Design, and
+  Processing](https://www.google.com/search?q=Directional+Field+Synthesis+Design+and+Processing),
+  2016
 [#wang_bc_2015]: Yu Wang, Alec Jacobson, Jernej Barbic, Ladislav Kavan. [Linear
   Subspace Design for Real-Time Shape
   Deformation](https://www.google.com/search?q=Linear+Subspace+Design+for+Real-Time+Shape+Deformation),
@@ -3300,6 +3440,4 @@ pseudonormal](https://www.google.com/search?q=Signed+distance+computation+using+
 [#zhou_2016]: Qingnan Zhou, Eitan Grinspun, Denis Zorin. [Mesh Arrangements for
   Solid
   Geometry](https://www.google.com/search?q=Mesh+Arrangements+for+Solid+Geometry),
-  2016
-[#vaxman_2016]: Amir Vaxman, Marcel Campen, Olga Diamanti, Daniele Panozzo, David Bommes, Klaus Hildebrandt, Mirela Ben-Chen. [Directional Field Synthesis, Design, and Processing](https://www.google.com/search?q=Directional+Field+Synthesis+Design+and+Processing),
   2016

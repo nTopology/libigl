@@ -30,30 +30,42 @@ namespace igl
     const Eigen::Matrix<int,Eigen::Dynamic,1> & C,
     Eigen::SparseMatrix<T>& Y,NTInterrupter* interrupter = nullptr);
 
-  template <typename DerivedX>
+  template <typename DerivedX, typename DerivedY>
   IGL_INLINE void slice_into(
-    const Eigen::PlainObjectBase<DerivedX> & X,
+    const Eigen::DenseBase<DerivedX> & X,
     const Eigen::Matrix<int,Eigen::Dynamic,1> & R,
     const Eigen::Matrix<int,Eigen::Dynamic,1> & C,
+<<<<<<< HEAD
     Eigen::PlainObjectBase<DerivedX> & Y,NTInterrupter* interrupter = nullptr);
+=======
+    Eigen::PlainObjectBase<DerivedY> & Y);
+>>>>>>> 2d7e665bed2543ccc29e6450f4036a661e308f9f
   // Wrapper to only slice in one direction
   //
   // Inputs:
   //   dim  dimension to slice in 1 or 2, dim=1 --> X(R,:), dim=2 --> X(:,R)
   //
   // Note: For now this is just a cheap wrapper.
-  template <typename Mat>
+  template <typename MatX, typename MatY>
   IGL_INLINE void slice_into(
-    const Mat& X,
+    const MatX & X,
     const Eigen::Matrix<int,Eigen::Dynamic,1> & R,
     const int dim,
+<<<<<<< HEAD
     Mat& Y,NTInterrupter* interrupter = nullptr);
+=======
+    MatY& Y);
+>>>>>>> 2d7e665bed2543ccc29e6450f4036a661e308f9f
 
-  template <typename DerivedX>
+  template <typename DerivedX, typename DerivedY>
   IGL_INLINE void slice_into(
-    const Eigen::PlainObjectBase<DerivedX> & X,
+    const Eigen::DenseBase<DerivedX> & X,
     const Eigen::Matrix<int,Eigen::Dynamic,1> & R,
+<<<<<<< HEAD
     Eigen::PlainObjectBase<DerivedX> & Y,NTInterrupter* interrupter = nullptr);
+=======
+    Eigen::PlainObjectBase<DerivedY> & Y);
+>>>>>>> 2d7e665bed2543ccc29e6450f4036a661e308f9f
 }
 
 #ifndef IGL_STATIC_LIBRARY

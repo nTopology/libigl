@@ -25,7 +25,7 @@ namespace igl
     typename DerivedIA,
     typename DerivedIC>
   IGL_INLINE void unique_simplices(
-    const Eigen::PlainObjectBase<DerivedF>& F,
+    const Eigen::MatrixBase<DerivedF>& F,
     Eigen::PlainObjectBase<DerivedFF>& FF,
     Eigen::PlainObjectBase<DerivedIA>& IA,
     Eigen::PlainObjectBase<DerivedIC>& IC,
@@ -34,9 +34,14 @@ namespace igl
     typename DerivedF,
     typename DerivedFF>
   IGL_INLINE void unique_simplices(
+<<<<<<< HEAD
     const Eigen::PlainObjectBase<DerivedF>& F,
     Eigen::PlainObjectBase<DerivedFF>& FF,
     NTInterrupter* mInterrupter = nullptr);
+=======
+    const Eigen::MatrixBase<DerivedF>& F,
+    Eigen::PlainObjectBase<DerivedFF>& FF);
+>>>>>>> 2d7e665bed2543ccc29e6450f4036a661e308f9f
 }
 
 #ifndef IGL_STATIC_LIBRARY

@@ -9,7 +9,13 @@
 #include "colon.h"
 #include "list_to_matrix.h"
 #include "sort.h"
+<<<<<<< HEAD
 #include "unique.h"
+=======
+#include "sortrows.h"
+#include "unique.h"
+#include "unique_rows.h"
+>>>>>>> 2d7e665bed2543ccc29e6450f4036a661e308f9f
 
 template <
   typename DerivedA,
@@ -17,16 +23,27 @@ template <
   typename DerivedIA,
   typename DerivedLOCB>
 IGL_INLINE void igl::ismember(
+<<<<<<< HEAD
   const Eigen::PlainObjectBase<DerivedA> & A,
   const Eigen::PlainObjectBase<DerivedB> & B,
+=======
+  const Eigen::MatrixBase<DerivedA> & A,
+  const Eigen::MatrixBase<DerivedB> & B,
+>>>>>>> 2d7e665bed2543ccc29e6450f4036a661e308f9f
   Eigen::PlainObjectBase<DerivedIA> & IA,
   Eigen::PlainObjectBase<DerivedLOCB> & LOCB)
 {
   using namespace Eigen;
   using namespace std;
+<<<<<<< HEAD
   IA.resize(A.rows(),A.cols());
   IA.setConstant(false);
   LOCB.resize(A.rows(),A.cols());
+=======
+  IA.resizeLike(A);
+  IA.setConstant(false);
+  LOCB.resizeLike(A);
+>>>>>>> 2d7e665bed2543ccc29e6450f4036a661e308f9f
   LOCB.setConstant(-1);
   // boring base cases
   if(A.size() == 0)
@@ -41,8 +58,13 @@ IGL_INLINE void igl::ismember(
   // Get rid of any duplicates
   typedef Matrix<typename DerivedA::Scalar,Dynamic,1> VectorA;
   typedef Matrix<typename DerivedB::Scalar,Dynamic,1> VectorB;
+<<<<<<< HEAD
   const VectorA vA(Eigen::Map<const VectorA>(A.data(), A.cols()*A.rows(),1));
   const VectorB vB(Eigen::Map<const VectorB>(B.data(), B.cols()*B.rows(),1));
+=======
+  const VectorA vA(Eigen::Map<const VectorA>(DerivedA(A).data(), A.cols()*A.rows(),1));
+  const VectorB vB(Eigen::Map<const VectorB>(DerivedB(B).data(), B.cols()*B.rows(),1));
+>>>>>>> 2d7e665bed2543ccc29e6450f4036a661e308f9f
   VectorA uA;
   VectorB uB;
   Eigen::Matrix<typename DerivedA::Index,Dynamic,1> uIA,uIuA,uIB,uIuB;
@@ -90,7 +112,97 @@ IGL_INLINE void igl::ismember(
   }
 }
 
+<<<<<<< HEAD
 #ifdef IGL_STATIC_LIBRARY
 // Explicit template specialization
 template void igl::ismember<Eigen::Matrix<int, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, -1, 0, -1, -1>, Eigen::Matrix<bool, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, -1, 0, -1, -1> >(Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> > const&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> > const&, Eigen::PlainObjectBase<Eigen::Matrix<bool, -1, -1, 0, -1, -1> >&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> >&);
+=======
+template <
+  typename DerivedA,
+  typename DerivedB,
+  typename DerivedIA,
+  typename DerivedLOCB>
+IGL_INLINE void igl::ismember_rows(
+  const Eigen::MatrixBase<DerivedA> & A,
+  const Eigen::MatrixBase<DerivedB> & B,
+  Eigen::PlainObjectBase<DerivedIA> & IA,
+  Eigen::PlainObjectBase<DerivedLOCB> & LOCB)
+{
+  using namespace Eigen;
+  using namespace std;
+  assert(A.cols() == B.cols() && "number of columns must match");
+  IA.resize(A.rows(),1);
+  IA.setConstant(false);
+  LOCB.resize(A.rows(),1);
+  LOCB.setConstant(-1);
+  // boring base cases
+  if(A.size() == 0)
+  {
+    return;
+  }
+  if(B.size() == 0)
+  {
+    return;
+  }
+
+  // Get rid of any duplicates
+  DerivedA uA;
+  DerivedB uB;
+  Eigen::Matrix<typename DerivedA::Index,Dynamic,1> uIA,uIuA,uIB,uIuB;
+  unique_rows(A,uA,uIA,uIuA);
+  unique_rows(B,uB,uIB,uIuB);
+  // Sort both
+  DerivedA sA;
+  DerivedB sB;
+  Eigen::Matrix<typename DerivedA::Index,Dynamic,1> sIA,sIB;
+  sortrows(uA,true,sA,sIA);
+  sortrows(uB,true,sB,sIB);
+
+  Eigen::Matrix<bool,Eigen::Dynamic,1> uF = 
+    Eigen::Matrix<bool,Eigen::Dynamic,1>::Zero(sA.size(),1);
+  Eigen::Matrix<typename DerivedLOCB::Scalar, Eigen::Dynamic,1> uLOCB =
+    Eigen::Matrix<typename DerivedLOCB::Scalar,Eigen::Dynamic,1>::
+    Constant(sA.size(),1,-1);
+  const auto & row_greater_than = [&sA,&sB](const int a, const int b)
+  {
+    for(int c = 0;c<sA.cols();c++)
+    {
+      if(sA(a,c) > sB(b,c)) return true;
+      if(sA(a,c) < sB(b,c)) return false;
+    }
+    return false;
+  };
+  {
+    int bi = 0;
+    // loop over sA
+    bool past = false;
+    for(int a = 0;a<sA.rows();a++)
+    {
+      while(!past && row_greater_than(a,bi))
+      {
+        bi++;
+        past = bi>=sB.size();
+      }
+      if(!past && (sA.row(a).array()==sB.row(bi).array()).all() )
+      {
+        uF(sIA(a)) = true;
+        uLOCB(sIA(a)) = uIB(sIB(bi));
+      }
+    }
+  }
+
+  for(int a = 0;a<A.rows();a++)
+  {
+    IA(a) = uF(uIuA(a));
+    LOCB(a) = uLOCB(uIuA(a));
+  }
+}
+
+#ifdef IGL_STATIC_LIBRARY
+// Explicit template instantiation
+template void igl::ismember<Eigen::Matrix<int, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, -1, 0, -1, -1>, Eigen::Matrix<bool, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, -1, 0, -1, -1> >(Eigen::MatrixBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> > const&, Eigen::MatrixBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> > const&, Eigen::PlainObjectBase<Eigen::Matrix<bool, -1, -1, 0, -1, -1> >&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> >&);
+template void igl::ismember_rows<Eigen::Matrix<int, -1, 2, 0, -1, 2>, Eigen::Matrix<int, -1, 2, 0, -1, 2>, Eigen::Array<bool, -1, 1, 0, -1, 1>, Eigen::Matrix<int, -1, 1, 0, -1, 1> >(Eigen::MatrixBase<Eigen::Matrix<int, -1, 2, 0, -1, 2> > const&, Eigen::MatrixBase<Eigen::Matrix<int, -1, 2, 0, -1, 2> > const&, Eigen::PlainObjectBase<Eigen::Array<bool, -1, 1, 0, -1, 1> >&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, 1, 0, -1, 1> >&);
+template void igl::ismember_rows<Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::Matrix<bool, -1, 1, 0, -1, 1>, Eigen::Matrix<int, -1, 1, 0, -1, 1> >(Eigen::MatrixBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> > const&, Eigen::MatrixBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> > const&, Eigen::PlainObjectBase<Eigen::Matrix<bool, -1, 1, 0, -1, 1> >&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, 1, 0, -1, 1> >&);
+template void igl::ismember_rows<Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::Matrix<double, -1, 3, 0, -1, 3>, Eigen::Matrix<bool, -1, 1, 0, -1, 1>, Eigen::Matrix<int, -1, 1, 0, -1, 1> >(Eigen::MatrixBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> > const&, Eigen::MatrixBase<Eigen::Matrix<double, -1, 3, 0, -1, 3> > const&, Eigen::PlainObjectBase<Eigen::Matrix<bool, -1, 1, 0, -1, 1> >&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, 1, 0, -1, 1> >&);
+>>>>>>> 2d7e665bed2543ccc29e6450f4036a661e308f9f
 #endif

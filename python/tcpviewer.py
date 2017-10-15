@@ -1,3 +1,10 @@
+# This file is part of libigl, a simple c++ geometry processing library.
+#
+# Copyright (C) 2017 Sebastian Koch <s.koch@tu-berlin.de> and Daniele Panozzo <daniele.panozzo@gmail.com>
+#
+# This Source Code Form is subject to the terms of the Mozilla Public License
+# v. 2.0. If a copy of the MPL was not distributed with this file, You can
+# obtain one at http://mozilla.org/MPL/2.0/.
 import socket
 import threading
 import pyigl as igl
@@ -16,7 +23,7 @@ def worker(viewer,lock,s):
             lock.acquire()
             slist = []
             while True:
-                buf = conn.recv(10000000)
+                buf = conn.recv(4096)
                 if not buf:
                     break
                 slist.append(buf.decode('unicode_internal','ignore'))
@@ -41,7 +48,8 @@ class TCPViewer(igl.viewer.Viewer):
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.connect((HOST, PORT))
-            a = array.array('u',self.data.serialize())
+            ser = self.data.serialize()
+            a = array.array('u', ser)
             s.sendall(a)
             s.close()
         except:

@@ -117,7 +117,10 @@ template <typename DerivedV, typename DerivedF>
 IGL_INLINE void grad_tri(const Eigen::PlainObjectBase<DerivedV>&V,
                      const Eigen::PlainObjectBase<DerivedF>&F,
                     Eigen::SparseMatrix<typename DerivedV::Scalar> &G,
+<<<<<<< HEAD
                     NTInterrupter* interrupter,
+=======
+>>>>>>> 2d7e665bed2543ccc29e6450f4036a661e308f9f
                     bool uniform)
 {
   Eigen::Matrix<typename DerivedV::Scalar,Eigen::Dynamic,3>
@@ -141,7 +144,11 @@ IGL_INLINE void grad_tri(const Eigen::PlainObjectBase<DerivedV>&V,
     // This does correct l2 norm of rows, so that it contains #F list of twice
     // triangle areas
     double dblA = std::sqrt(n.dot(n));
+<<<<<<< HEAD
     Eigen::Matrix<typename DerivedV::Scalar, 1, 3> u;
+=======
+    Eigen::Matrix<typename DerivedV::Scalar, 1, 3> u(0,0,1);
+>>>>>>> 2d7e665bed2543ccc29e6450f4036a661e308f9f
     if (!uniform) {
       // now normalize normals to get unit normals
       u = n / dblA;
@@ -151,7 +158,11 @@ IGL_INLINE void grad_tri(const Eigen::PlainObjectBase<DerivedV>&V,
       // get h (by the area of the triangle)
       double h = sqrt( (dblA)/sin(M_PI / 3.0)); // (h^2*sin(60))/2. = Area => h = sqrt(2*Area/sin_60)
 
+<<<<<<< HEAD
       Eigen::VectorXd v1,v2,v3;
+=======
+      Eigen::Vector3d v1,v2,v3;
+>>>>>>> 2d7e665bed2543ccc29e6450f4036a661e308f9f
       v1 << 0,0,0;
       v2 << h,0,0;
       v3 << h/2.,(sqrt(3)/2.)*h,0;
@@ -237,7 +248,11 @@ IGL_INLINE void igl::grad(const Eigen::PlainObjectBase<DerivedV>&V,
 }
 
 #ifdef IGL_STATIC_LIBRARY
+<<<<<<< HEAD
 // Explicit template specialization
+=======
+// Explicit template instantiation
+>>>>>>> 2d7e665bed2543ccc29e6450f4036a661e308f9f
 template void igl::grad<Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, -1, 0, -1, -1> >(Eigen::PlainObjectBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> > const&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> > const&, Eigen::SparseMatrix<Eigen::Matrix<double, -1, -1, 0, -1, -1>::Scalar, 0, int>&, bool);
 template void igl::grad<Eigen::Matrix<double, -1, 3, 0, -1, 3>, Eigen::Matrix<int, -1, 3, 0, -1, 3> >(Eigen::PlainObjectBase<Eigen::Matrix<double, -1, 3, 0, -1, 3> > const&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, 3, 0, -1, 3> > const&, Eigen::SparseMatrix<Eigen::Matrix<double, -1, 3, 0, -1, 3>::Scalar, 0, int>&, bool);
 #endif

@@ -1,3 +1,10 @@
+// This file is part of libigl, a simple c++ geometry processing library.
+// 
+// Copyright (C) 2016 Alec Jacobson <alecjacobson@gmail.com>
+// 
+// This Source Code Form is subject to the terms of the Mozilla Public License 
+// v. 2.0. If a copy of the MPL was not distributed with this file, You can 
+// obtain one at http://mozilla.org/MPL/2.0/.
 #include <igl/cut_mesh.h>
 #include <igl/vertex_triangle_adjacency.h>
 #include <igl/triangle_triangle_adjacency.h>
@@ -5,6 +12,7 @@
 #include <igl/HalfEdgeIterator.h>
 #include <set>
 
+// This file violates many of the libigl style guidelines.
 
 namespace igl {
 
@@ -17,6 +25,7 @@ namespace igl {
     //mesh
     const Eigen::PlainObjectBase<DerivedV> &V;
     const Eigen::PlainObjectBase<DerivedF> &F;
+    // TT is the same type as TTi? This is likely to break at some point
     const Eigen::PlainObjectBase<DerivedTT> &TT;
     const Eigen::PlainObjectBase<DerivedTT> &TTi;
     const std::vector<std::vector<VFType> >& VF;
@@ -36,6 +45,7 @@ namespace igl {
     // per vertex variable indexes
     std::vector<std::vector<int> > HandleV_Integer;
 
+<<<<<<< HEAD
     IGL_INLINE MeshCutterMini(const Eigen::PlainObjectBase<DerivedV> &_V,
                               const Eigen::PlainObjectBase<DerivedF> &_F,
                               const Eigen::PlainObjectBase<DerivedTT> &_TT,
@@ -44,6 +54,17 @@ namespace igl {
                               const std::vector<std::vector<VFType> > &_VFi,
                               const std::vector<bool> &_V_border,
                               const Eigen::PlainObjectBase<DerivedC> &_Handle_Seams,NTInterrupter* interrupter = nullptr);
+=======
+    IGL_INLINE MeshCutterMini(
+      const Eigen::PlainObjectBase<DerivedV> &_V,
+      const Eigen::PlainObjectBase<DerivedF> &_F,
+      const Eigen::PlainObjectBase<DerivedTT> &_TT,
+      const Eigen::PlainObjectBase<DerivedTT> &_TTi,
+      const std::vector<std::vector<VFType> > &_VF,
+      const std::vector<std::vector<VFType> > &_VFi,
+      const std::vector<bool> &_V_border,
+      const Eigen::PlainObjectBase<DerivedC> &_Handle_Seams);
+>>>>>>> 2d7e665bed2543ccc29e6450f4036a661e308f9f
 
     // vertex to variable mapping
     // initialize the mapping for a given sampled mesh
@@ -75,6 +96,7 @@ namespace igl {
 
 template <typename DerivedV, typename DerivedF, typename VFType, typename DerivedTT, typename DerivedC>
 IGL_INLINE igl::MeshCutterMini<DerivedV, DerivedF, VFType, DerivedTT, DerivedC>::
+<<<<<<< HEAD
 MeshCutterMini(const Eigen::PlainObjectBase<DerivedV> &_V,
                const Eigen::PlainObjectBase<DerivedF> &_F,
                const Eigen::PlainObjectBase<DerivedTT> &_TT,
@@ -92,11 +114,28 @@ VFi(_VFi),
 V_border(_V_border),
 Handle_Seams(_Handle_Seams),
 mInterrupter(interrupter)
+=======
+MeshCutterMini(
+  const Eigen::PlainObjectBase<DerivedV> &_V,
+  const Eigen::PlainObjectBase<DerivedF> &_F,
+  const Eigen::PlainObjectBase<DerivedTT> &_TT,
+  const Eigen::PlainObjectBase<DerivedTT> &_TTi,
+  const std::vector<std::vector<VFType> > &_VF,
+  const std::vector<std::vector<VFType> > &_VFi,
+  const std::vector<bool> &_V_border,
+  const Eigen::PlainObjectBase<DerivedC> &_Handle_Seams):
+  V(_V),
+  F(_F),
+  TT(_TT),
+  TTi(_TTi),
+  VF(_VF),
+  VFi(_VFi),
+  V_border(_V_border),
+  Handle_Seams(_Handle_Seams)
+>>>>>>> 2d7e665bed2543ccc29e6450f4036a661e308f9f
 {
   num_scalar_variables=0;
-
   HandleS_Index.setConstant(F.rows(),3,-1);
-
   HandleV_Integer.resize(V.rows());
 }
 
@@ -147,7 +186,7 @@ FindInitialPos(const int vert,
   int f_init;
   int edge_init;
   FirstPos(vert,f_init,edge_init); // todo manually the function
-  igl::HalfEdgeIterator<DerivedF> VFI(F,TT,TTi,f_init,edge_init);
+  igl::HalfEdgeIterator<DerivedF,DerivedTT,DerivedTT> VFI(F,TT,TTi,f_init,edge_init);
 
   bool vertexB = V_border[vert];
   bool possible_split=false;
@@ -195,7 +234,7 @@ MapIndexes(const int  vert,
   ///insert an initial index
   int curr_index=AddNewIndex(vert);
   ///and initialize the jumping pos
-  igl::HalfEdgeIterator<DerivedF> VFI(F,TT,TTi,f_init,edge_init);
+  igl::HalfEdgeIterator<DerivedF,DerivedTT,DerivedTT> VFI(F,TT,TTi,f_init,edge_init);
   bool complete_turn=false;
   do
   {
@@ -233,7 +272,7 @@ InitMappingSeam(const int vert)
   int f_init = VF[vert][0];
   int indexE = VFi[vert][0];
 
-  igl::HalfEdgeIterator<DerivedF> VFI(F,TT,TTi,f_init,indexE);
+  igl::HalfEdgeIterator<DerivedF,DerivedTT,DerivedTT> VFI(F,TT,TTi,f_init,indexE);
 
   int edge_init;
   int face_init;
@@ -269,6 +308,7 @@ InitMappingSeam()
 
 template <typename DerivedV, typename DerivedF, typename VFType, typename DerivedTT, typename DerivedC>
 IGL_INLINE void igl::cut_mesh(
+<<<<<<< HEAD
                                                                   const Eigen::PlainObjectBase<DerivedV> &V,
                                                                   const Eigen::PlainObjectBase<DerivedF> &F,
                                                                   const std::vector<std::vector<VFType> >& VF,
@@ -279,6 +319,18 @@ IGL_INLINE void igl::cut_mesh(
                                                                   const Eigen::PlainObjectBase<DerivedC> &cuts,
                                                                   Eigen::PlainObjectBase<DerivedV> &Vcut,
                                                                   Eigen::PlainObjectBase<DerivedF> &Fcut,NTInterrupter* interrupter)
+=======
+  const Eigen::PlainObjectBase<DerivedV> &V,
+  const Eigen::PlainObjectBase<DerivedF> &F,
+  const std::vector<std::vector<VFType> >& VF,
+  const std::vector<std::vector<VFType> >& VFi,
+  const Eigen::PlainObjectBase<DerivedTT>& TT,
+  const Eigen::PlainObjectBase<DerivedTT>& TTi,
+  const std::vector<bool> &V_border,
+  const Eigen::PlainObjectBase<DerivedC> &cuts,
+  Eigen::PlainObjectBase<DerivedV> &Vcut,
+  Eigen::PlainObjectBase<DerivedF> &Fcut)
+>>>>>>> 2d7e665bed2543ccc29e6450f4036a661e308f9f
 {
   //finding the cuts is done, now we need to actually generate a cut mesh
   
@@ -330,14 +382,22 @@ IGL_INLINE void igl::cut_mesh(
 //Wrapper of the above with only vertices and faces as mesh input
 template <typename DerivedV, typename DerivedF, typename DerivedC>
 IGL_INLINE void igl::cut_mesh(
+<<<<<<< HEAD
                                                                   const Eigen::PlainObjectBase<DerivedV> &V,
                                                                   const Eigen::PlainObjectBase<DerivedF> &F,
                                                                   const Eigen::PlainObjectBase<DerivedC> &cuts,
                                                                   Eigen::PlainObjectBase<DerivedV> &Vcut,
                                                                   Eigen::PlainObjectBase<DerivedF> &Fcut,NTInterrupter* interrupter)
+=======
+  const Eigen::PlainObjectBase<DerivedV> &V,
+  const Eigen::PlainObjectBase<DerivedF> &F,
+  const Eigen::PlainObjectBase<DerivedC> &cuts,
+  Eigen::PlainObjectBase<DerivedV> &Vcut,
+  Eigen::PlainObjectBase<DerivedF> &Fcut)
+>>>>>>> 2d7e665bed2543ccc29e6450f4036a661e308f9f
 {
-
   std::vector<std::vector<int> > VF, VFi;
+<<<<<<< HEAD
   igl::vertex_triangle_adjacency(V,F,VF,VFi,interrupter);
 
   Eigen::MatrixXd Vt = V;
@@ -350,10 +410,20 @@ IGL_INLINE void igl::cut_mesh(
   igl::cut_mesh(V, F, VF, VFi, TT, TTi, V_border, cuts, Vcut, Fcut,interrupter);
 
 
+=======
+  igl::vertex_triangle_adjacency(V,F,VF,VFi);
+  // Alec: Cast? Why? This is likely to break.
+  Eigen::MatrixXd Vt = V;
+  Eigen::MatrixXi Ft = F;
+  Eigen::MatrixXi TT, TTi;
+  igl::triangle_triangle_adjacency(Ft,TT,TTi);
+  std::vector<bool> V_border = igl::is_border_vertex(V,F);
+  igl::cut_mesh(V, F, VF, VFi, TT, TTi, V_border, cuts, Vcut, Fcut);
+>>>>>>> 2d7e665bed2543ccc29e6450f4036a661e308f9f
 }
 
 #ifdef IGL_STATIC_LIBRARY
-// Explicit template specialization
+// Explicit template instantiation
 template void igl::cut_mesh<Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, -1, 0, -1, -1>, int, Eigen::Matrix<int, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, -1, 0, -1, -1> >(Eigen::PlainObjectBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> > const&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> > const&, std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > > const&, std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > > const&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> > const&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> > const&, std::vector<bool, std::allocator<bool> > const&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> > const&, Eigen::PlainObjectBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> >&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> >&);
 template void igl::cut_mesh<Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, -1, 0, -1, -1> >(Eigen::PlainObjectBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> > const&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> > const&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> > const&, Eigen::PlainObjectBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> >&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> >&);
 template void igl::cut_mesh<Eigen::Matrix<double, -1, 3, 0, -1, 3>, Eigen::Matrix<int, -1, 3, 0, -1, 3>, Eigen::Matrix<int, -1, 3, 0, -1, 3> >(Eigen::PlainObjectBase<Eigen::Matrix<double, -1, 3, 0, -1, 3> > const&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, 3, 0, -1, 3> > const&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, 3, 0, -1, 3> > const&, Eigen::PlainObjectBase<Eigen::Matrix<double, -1, 3, 0, -1, 3> >&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, 3, 0, -1, 3> >&);

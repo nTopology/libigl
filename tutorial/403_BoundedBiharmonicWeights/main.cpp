@@ -1,13 +1,10 @@
-// If you don't have mosek installed and don't want to install it. Then
-// uncomment the following six lines.  Don't use static library for this
-// example because of Mosek complications
-//
-//#define IGL_NO_MOSEK
-//#ifdef IGL_NO_MOSEK
-//#ifdef IGL_STATIC_LIBRARY
-//#undef IGL_STATIC_LIBRARY
-//#endif
-//#endif
+// Because of Mosek complications, we don't use static library if Mosek is used.
+#ifdef LIBIGL_WITH_MOSEK
+#ifdef IGL_STATIC_LIBRARY
+#undef IGL_STATIC_LIBRARY
+#endif
+#endif
+
 #include <igl/boundary_conditions.h>
 #include <igl/colon.h>
 #include <igl/column_to_quats.h>
@@ -21,7 +18,7 @@
 #include <igl/readMESH.h>
 #include <igl/readTGF.h>
 #include <igl/viewer/Viewer.h>
-#include <igl/bbw/bbw.h>
+#include <igl/bbw.h>
 //#include <igl/embree/bone_heat.h>
 
 #include <Eigen/Geometry>
@@ -139,13 +136,13 @@ int main(int argc, char *argv[])
   igl::boundary_conditions(V,T,C,VectorXi(),BE,MatrixXi(),b,bc);
 
   // compute BBW weights matrix
-  igl::bbw::BBWData bbw_data;
+  igl::BBWData bbw_data;
   // only a few iterations for sake of demo
   bbw_data.active_set_params.max_iter = 8;
   bbw_data.verbosity = 2;
-  if(!igl::bbw::bbw(V,T,b,bc,bbw_data,W))
+  if(!igl::bbw(V,T,b,bc,bbw_data,W))
   {
-    return false;
+    return EXIT_FAILURE;
   }
 
   //MatrixXd Vsurf = V.topLeftCorner(F.maxCoeff()+1,V.cols());
@@ -179,4 +176,5 @@ int main(int argc, char *argv[])
     "Press ',' to show previous weight function."<<endl<<
     "Press [space] to toggle animation."<<endl;
   viewer.launch();
+  return EXIT_SUCCESS;
 }

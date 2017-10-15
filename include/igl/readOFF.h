@@ -16,6 +16,7 @@
 #endif
 #include <string>
 #include <vector>
+#include <cstdio>
 
 namespace igl 
 {
@@ -42,6 +43,20 @@ namespace igl
     std::vector<std::vector<Index > > & F,
     std::vector<std::vector<Scalar > > & N,
     std::vector<std::vector<Scalar > > & C);
+<<<<<<< HEAD
+=======
+  // Inputs:
+  //   off_file  pointer to already opened .off file 
+  // Outputs:
+  //   off_file  closed file
+  template <typename Scalar, typename Index>
+  IGL_INLINE bool readOFF(
+    FILE * off_file,
+    std::vector<std::vector<Scalar > > & V,
+    std::vector<std::vector<Index > > & F,
+    std::vector<std::vector<Scalar > > & N,
+    std::vector<std::vector<Scalar > > & C);
+>>>>>>> 2d7e665bed2543ccc29e6450f4036a661e308f9f
   
   
 #ifndef IGL_NO_EIGEN

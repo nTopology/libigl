@@ -36,8 +36,13 @@ namespace igl
   //
   template <typename DerivedV, typename DerivedF, typename DerivedL>
   IGL_INLINE void squared_edge_lengths(
+<<<<<<< HEAD
     const Eigen::PlainObjectBase<DerivedV>& V,
     const Eigen::PlainObjectBase<DerivedF>& F,
+=======
+    const Eigen::MatrixBase<DerivedV>& V,
+    const Eigen::MatrixBase<DerivedF>& F,
+>>>>>>> 2d7e665bed2543ccc29e6450f4036a661e308f9f
     Eigen::PlainObjectBase<DerivedL>& L);
 }
 

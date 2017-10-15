@@ -195,7 +195,11 @@ IGL_INLINE void igl::copyleft::cgal::snap_rounding(
   }
 
 
+<<<<<<< HEAD
   VI.resize(VE.rows(),VE.cols());
+=======
+  VI.resizeLike(VE);
+>>>>>>> 2d7e665bed2543ccc29e6450f4036a661e308f9f
   for(int i = 0;i<VE.rows();i++)
   {
     for(int j = 0;j<VE.cols();j++)

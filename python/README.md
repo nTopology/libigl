@@ -32,7 +32,8 @@ The cmake script will complain if it is not able to find python. In that case
 you can specify the location of the interpreter by specifying the following
 cmake variables.
 
-MacOSX/Linux:
+
+MacOSX:
 
 ```cmake
 SET(PYTHON_LIBRARIES "/usr/local/Cellar/python3/3.5.0/Frameworks/Python.framework/Versions/3.5/lib/libpython3.5m.dylib")
@@ -45,6 +46,13 @@ Windows:
 SET(PYTHON_LIBRARIES "C:/Python35/libs/python35.lib")
 SET(PYTHON_INCLUDE_DIR "C:/Python35/include")
 ```
+
+On Linux you may need to install the development version of python:
+
+```bash
+sudo apt-get install python-dev
+```
+
 
 ## Tutorial
 
@@ -128,9 +136,11 @@ We provide a few examples in the folder python/matlab.
 ## Documentation
 
 The python functions have exactly the same prototypes as their C++ counterpart.
-To get help for a certain function, please check the documentation in the
-corresponding .h file in libigl/include. We will add a proper docstring
-documentation in the future.
+Docstrings for all available python functions are extracted from the C++ header files and compiled into the python module. To get help for a certain function, you can run `help(pyigl.<function_name>)` in the python console.
+
+In the scripts folder there is the script `generate_docstrings.py` that automatically generates python docstrings for a new function. You can run it with `generate_docstrings.py <path_to_cpp_header_files> <path_to_python_files>`. 
+The script depends on additional libraries (joblib, mako, clang), make sure to install them (e.g. through pip. python-clang is included in external/nanogui/ext/pybind11/tools/clang).
+
 
 ## Known Issues
 
@@ -138,7 +148,7 @@ documentation in the future.
 
 Libigl is a group endeavor led by [Alec
 Jacobson](http://www.cs.columbia.edu/~jacobson/) and [Daniele
-Panozzo](http://www.inf.ethz.ch/personal/dpanozzo/). Please [contact
+Panozzo](http://cs.nyu.edu/~panozzo/). Please [contact
 us](mailto:alecjacobson@gmail.com,daniele.panozzo@gmail.com) if you have
 questions or comments. For troubleshooting, please post an
 [issue](https://github.com/libigl/libigl/issues) on github.

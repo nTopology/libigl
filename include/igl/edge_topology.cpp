@@ -11,12 +11,20 @@
 
 template<typename DerivedV, typename DerivedF>
 IGL_INLINE void igl::edge_topology(
+<<<<<<< HEAD
                                    const Eigen::PlainObjectBase<DerivedV>& V,
                                    const Eigen::PlainObjectBase<DerivedF>& F,
                                    Eigen::MatrixXi& EV,
                                    Eigen::MatrixXi& FE,
                                    Eigen::MatrixXi& EF,
                                    NTInterrupter* interrupter)
+=======
+  const Eigen::PlainObjectBase<DerivedV>& V,
+  const Eigen::PlainObjectBase<DerivedF>& F,
+  Eigen::MatrixXi& EV,
+  Eigen::MatrixXi& FE,
+  Eigen::MatrixXi& EF)
+>>>>>>> 2d7e665bed2543ccc29e6450f4036a661e308f9f
 {
   // Only needs to be edge-manifold
   if (V.rows() ==0 || F.rows()==0)
@@ -26,9 +34,13 @@ IGL_INLINE void igl::edge_topology(
     EF = Eigen::MatrixXi::Constant(0,2,-1);
     return;
   }
+<<<<<<< HEAD
   if(NTInterrupter::startSection(interrupter,.25))return;
   assert(igl::is_edge_manifold(F));
 
+=======
+  assert(igl::is_edge_manifold(F));
+>>>>>>> 2d7e665bed2543ccc29e6450f4036a661e308f9f
   std::vector<std::vector<int> > ETT;
   for(int f=0;f<F.rows();++f){
     if(NTInterrupter::wasInterrupted(interrupter,(double)f/F.rows()))return;
@@ -123,7 +135,7 @@ IGL_INLINE void igl::edge_topology(
 }
 
 #ifdef IGL_STATIC_LIBRARY
-// Explicit template specialization
+// Explicit template instantiation
 template void igl::edge_topology<Eigen::Matrix<double, -1, 3, 0, -1, 3>, Eigen::Matrix<int, -1, 3, 0, -1, 3> >(Eigen::PlainObjectBase<Eigen::Matrix<double, -1, 3, 0, -1, 3> > const&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, 3, 0, -1, 3> > const&, Eigen::Matrix<int, -1, -1, 0, -1, -1>&, Eigen::Matrix<int, -1, -1, 0, -1, -1>&, Eigen::Matrix<int, -1, -1, 0, -1, -1>&);
 template void igl::edge_topology<Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, -1, 0, -1, -1> >(Eigen::PlainObjectBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> > const&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> > const&, Eigen::Matrix<int, -1, -1, 0, -1, -1>&, Eigen::Matrix<int, -1, -1, 0, -1, -1>&, Eigen::Matrix<int, -1, -1, 0, -1, -1>&);
 #endif

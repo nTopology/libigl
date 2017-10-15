@@ -1,3 +1,10 @@
+# This file is part of libigl, a simple c++ geometry processing library.
+#
+# Copyright (C) 2017 Sebastian Koch <s.koch@tu-berlin.de> and Daniele Panozzo <daniele.panozzo@gmail.com>
+#
+# This Source Code Form is subject to the terms of the Mozilla Public License
+# v. 2.0. If a copy of the MPL was not distributed with this file, You can
+# obtain one at http://mozilla.org/MPL/2.0/.
 # Add the igl library to the modules search path
 import sys, os
 sys.path.insert(0, os.getcwd() + "/../")
@@ -52,7 +59,7 @@ def viewer_init(viewer):
     viewer.ngui.addButton("Print Hello", cb)
 
     #Add an additional menu window
-    viewer.ngui.addWindow(nanogui.Vector2i(220, 10), "New Window")
+    viewer.ngui.addWindow((220, 10), "New Window")
 
     # add accessor
     viewer.ngui.addDoubleVariable("double", *make_accessors("float_variable"))

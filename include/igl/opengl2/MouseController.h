@@ -169,8 +169,6 @@ namespace igl
 #include "draw_rectangular_marquee.h"
 #include "project.h"
 #include "../forward_kinematics.h"
-#include "../matlab_format.h"
-#include "../any_of.h"
 #include <iostream>
 #include <algorithm>
 #include <functional>
@@ -522,7 +520,7 @@ inline void igl::opengl2::MouseController::set_selection(
   }
 
   // Now selection should contain just bone roots of m_selection subtrees
-  if(any_of(m_selection))
+  if(m_selection.array().any())
   {
     // Taking average 
     Vector3d avg_pos(0,0,0);
@@ -673,7 +671,7 @@ inline void igl::opengl2::MouseController::clear_selection()
 
 inline bool igl::opengl2::MouseController::any_selection() const
 {
-  return igl::any_of(m_selection);
+  return m_selection.array().any();
 }
 
 inline void igl::opengl2::MouseController::set_widget_mode(const WidgetMode & mode)

@@ -24,9 +24,15 @@ namespace igl
     typename DerivedF,
     typename DerivedBC>
   IGL_INLINE void barycenter(
+<<<<<<< HEAD
       const Eigen::PlainObjectBase<DerivedV> & V,
       const Eigen::PlainObjectBase<DerivedF> & F,
       Eigen::PlainObjectBase<DerivedBC> & BC,NTInterrupter* interrupter = nullptr);
+=======
+      const Eigen::MatrixBase<DerivedV> & V,
+      const Eigen::MatrixBase<DerivedF> & F,
+      Eigen::PlainObjectBase<DerivedBC> & BC);
+>>>>>>> 2d7e665bed2543ccc29e6450f4036a661e308f9f
 }
 
 #ifndef IGL_STATIC_LIBRARY

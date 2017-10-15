@@ -26,6 +26,9 @@
 #define MIN(a,b)	((a) < (b) ? (a) : (b))
 #endif // !MIN
 
+//#warning "Defining IGL_PARALLEL_FOR_FORCE_SERIAL"
+//#define IGL_PARALLEL_FOR_FORCE_SERIAL
+
 namespace igl
 {
   // PARALLEL_FOR Functional implementation of a basic, open-mp style, parallel

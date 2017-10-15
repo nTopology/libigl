@@ -63,6 +63,7 @@ namespace igl
     IGL_INLINE double get_smallest_pos_quad_zero(double a,double b, double c)
     {
       using namespace std;
+<<<<<<< HEAD
       double t1,t2;
       if (a != 0)
       {
@@ -98,11 +99,54 @@ namespace igl
         else
         {
           return t1;
+=======
+      double t1, t2;
+      if(std::abs(a) > 1.0e-10)
+      {
+        double delta_in = pow(b, 2) - 4 * a * c;
+        if(delta_in <= 0)
+        {
+          return INFINITY;
+        }
+
+        double delta = sqrt(delta_in); // delta >= 0
+        if(b >= 0) // avoid subtracting two similar numbers
+        {
+          double bd = - b - delta;
+          t1 = 2 * c / bd;
+          t2 = bd / (2 * a);
+        }
+        else
+        {
+          double bd = - b + delta;
+          t1 = bd / (2 * a);
+          t2 = (2 * c) / bd;
+        }
+
+        assert (std::isfinite(t1));
+        assert (std::isfinite(t2));
+
+        if(a < 0) std::swap(t1, t2); // make t1 > t2
+        // return the smaller positive root if it exists, otherwise return infinity
+        if(t1 > 0)
+        {
+          return t2 > 0 ? t2 : t1;
+        }
+        else
+        {
+          return INFINITY;
+>>>>>>> 2d7e665bed2543ccc29e6450f4036a661e308f9f
         }
       }
       else
       {
+<<<<<<< HEAD
         return INFINITY;
+=======
+        if(b == 0) return INFINITY; // just to avoid divide-by-zero
+        t1 = -c / b;
+        return t1 > 0 ? t1 : INFINITY;
+>>>>>>> 2d7e665bed2543ccc29e6450f4036a661e308f9f
       }
     }
 
@@ -238,7 +282,11 @@ namespace igl
 
       double d = a_x*b_y*c_z - a_x*b_z*c_y - a_y*b_x*c_z + a_y*b_z*c_x + a_z*b_x*c_y - a_z*b_y*c_x - a_x*b_y*d_z + a_x*b_z*d_y + a_y*b_x*d_z - a_y*b_z*d_x - a_z*b_x*d_y + a_z*b_y*d_x + a_x*c_y*d_z - a_x*c_z*d_y - a_y*c_x*d_z + a_y*c_z*d_x + a_z*c_x*d_y - a_z*c_y*d_x - b_x*c_y*d_z + b_x*c_z*d_y + b_y*c_x*d_z - b_y*c_z*d_x - b_z*c_x*d_y + b_z*c_y*d_x;
 
+<<<<<<< HEAD
       if (a==0)
+=======
+      if (std::abs(a)<=1.e-10)
+>>>>>>> 2d7e665bed2543ccc29e6450f4036a661e308f9f
       {
         return get_smallest_pos_quad_zero(b,c,d);
       }
@@ -251,7 +299,11 @@ namespace igl
           return (res[0] >= 0) ? res[0]:INFINITY;
         case 2:
         {
+<<<<<<< HEAD
           double max_root = max(res[0],res[1]); double min_root = min(res[0],res[1]);
+=======
+          double max_root = std::max(res[0],res[1]); double min_root = std::min(res[0],res[1]);
+>>>>>>> 2d7e665bed2543ccc29e6450f4036a661e308f9f
           if (min_root > 0) return min_root;
           if (max_root > 0) return max_root;
           return INFINITY;
@@ -281,7 +333,11 @@ namespace igl
         for (int f = 0; f < F.rows(); f++)
         {
           double min_positive_root = get_min_pos_root_2D(uv,F,d,f);
+<<<<<<< HEAD
           max_step = min(max_step, min_positive_root);
+=======
+          max_step = std::min(max_step, min_positive_root);
+>>>>>>> 2d7e665bed2543ccc29e6450f4036a661e308f9f
         }
       }
       else
@@ -289,7 +345,11 @@ namespace igl
         for (int f = 0; f < F.rows(); f++)
         {
           double min_positive_root = get_min_pos_root_3D(uv,F,d,f);
+<<<<<<< HEAD
           max_step = min(max_step, min_positive_root);
+=======
+          max_step = std::min(max_step, min_positive_root);
+>>>>>>> 2d7e665bed2543ccc29e6450f4036a661e308f9f
         }
       }
       return max_step;
@@ -308,7 +368,11 @@ IGL_INLINE double igl::flip_avoiding_line_search(
   Eigen::MatrixXd d = dst_v - cur_v;
 
   double min_step_to_singularity = igl::flip_avoiding::compute_max_step_from_singularities(cur_v,F,d);
+<<<<<<< HEAD
   double max_step_size = min(1., min_step_to_singularity*0.8);
+=======
+  double max_step_size = std::min(1., min_step_to_singularity*0.8);
+>>>>>>> 2d7e665bed2543ccc29e6450f4036a661e308f9f
 
   return igl::line_search(cur_v,d,max_step_size, energy, cur_energy);
 }

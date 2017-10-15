@@ -228,8 +228,8 @@ inline igl::embree::EmbreeIntersector::EmbreeIntersector()
   :
   //scene(NULL),
   geomID(0),
-  triangles(NULL),
   vertices(NULL),
+  triangles(NULL),
   initialized(false)
 {
 }
@@ -239,8 +239,8 @@ inline igl::embree::EmbreeIntersector::EmbreeIntersector(
   :// To make -Weffc++ happy
   //scene(NULL),
   geomID(0),
-  triangles(NULL),
   vertices(NULL),
+  triangles(NULL),
   initialized(false)
 {
   assert(false && "Embree: Copying EmbreeIntersector is not allowed");
@@ -412,6 +412,7 @@ inline bool igl::embree::EmbreeIntersector::intersectBeam(
   if((intersectRay(origin,direction,hit,tnear,tfar,mask) && (hit.gid == geoId || geoId == -1)))
   {
     bestHit = hit;
+    hasHit = true;
   }
 
   // sample points around actual ray (conservative hitcheck)

@@ -405,7 +405,11 @@ namespace igl
       else
       { // seems like CG performs much worse for 2D and way better for 3D
         Eigen::VectorXd guess(uv.rows() * s.dim);
+<<<<<<< HEAD
         for (int i = 0; i < s.dim; i++) for (int j = 0; j < s.dim; j++) guess(uv.rows() * i + j) = uv(i, j); // flatten vector
+=======
+        for (int i = 0; i < s.v_num; i++) for (int j = 0; j < s.dim; j++) guess(uv.rows() * j + i) = uv(i, j); // flatten vector
+>>>>>>> 2d7e665bed2543ccc29e6450f4036a661e308f9f
         ConjugateGradient<Eigen::SparseMatrix<double>, Eigen::Lower | Upper> solver;
         solver.setTolerance(1e-8);
         Uc = solver.compute(L).solveWithGuess(s.rhs, guess);
@@ -838,9 +842,21 @@ namespace igl
 
 /// Slim Implementation
 
+<<<<<<< HEAD
 IGL_INLINE void igl::slim_precompute(Eigen::MatrixXd &V, Eigen::MatrixXi &F, Eigen::MatrixXd &V_init, SLIMData &data,
                                      SLIMData::SLIM_ENERGY slim_energy, Eigen::VectorXi &b, Eigen::MatrixXd &bc,
                                      double soft_p)
+=======
+IGL_INLINE void igl::slim_precompute(
+  const Eigen::MatrixXd &V, 
+  const Eigen::MatrixXi &F, 
+  const Eigen::MatrixXd &V_init, 
+  SLIMData &data,
+  SLIMData::SLIM_ENERGY slim_energy, 
+  Eigen::VectorXi &b, 
+  Eigen::MatrixXd &bc,
+  double soft_p)
+>>>>>>> 2d7e665bed2543ccc29e6450f4036a661e308f9f
 {
 
   data.V = V;
@@ -891,3 +907,10 @@ IGL_INLINE Eigen::MatrixXd igl::slim_solve(SLIMData &data, int iter_num)
   }
   return data.V_o;
 }
+<<<<<<< HEAD
+=======
+
+#ifdef IGL_STATIC_LIBRARY
+// Explicit template instantiation
+#endif
+>>>>>>> 2d7e665bed2543ccc29e6450f4036a661e308f9f

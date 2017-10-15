@@ -1,3 +1,10 @@
+// This file is part of libigl, a simple c++ geometry processing library.
+//
+// Copyright (C) 2017 Sebastian Koch <s.koch@tu-berlin.de> and Daniele Panozzo <daniele.panozzo@gmail.com>
+//
+// This Source Code Form is subject to the terms of the Mozilla Public License
+// v. 2.0. If a copy of the MPL was not distributed with this file, You can
+// obtain one at http://mozilla.org/MPL/2.0/.
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 
@@ -58,7 +65,23 @@ py::enum_<igl::viewer::ViewerData::DirtyFlags>(viewerdata_class, "DirtyFlags")
        (void (igl::viewer::ViewerData::*) (const Eigen::MatrixXd &, const Eigen::MatrixXi&)) &igl::viewer::ViewerData::set_uv
     )
 
-    .def("set_texture", &igl::viewer::ViewerData::set_texture)
+    .def("set_texture",
+       (void (igl::viewer::ViewerData::*) (
+         const Eigen::Matrix<unsigned char,Eigen::Dynamic,Eigen::Dynamic>&,
+         const Eigen::Matrix<unsigned char,Eigen::Dynamic,Eigen::Dynamic>&,
+         const Eigen::Matrix<unsigned char,Eigen::Dynamic,Eigen::Dynamic>&)
+       ) &igl::viewer::ViewerData::set_texture
+    )
+
+    .def("set_texture",
+       (void (igl::viewer::ViewerData::*) (
+         const Eigen::Matrix<unsigned char,Eigen::Dynamic,Eigen::Dynamic>&,
+         const Eigen::Matrix<unsigned char,Eigen::Dynamic,Eigen::Dynamic>&,
+         const Eigen::Matrix<unsigned char,Eigen::Dynamic,Eigen::Dynamic>&,
+         const Eigen::Matrix<unsigned char,Eigen::Dynamic,Eigen::Dynamic>&)
+       ) &igl::viewer::ViewerData::set_texture
+    )
+
     .def("set_points", &igl::viewer::ViewerData::set_points)
     .def("add_points", &igl::viewer::ViewerData::add_points)
     .def("set_edges", &igl::viewer::ViewerData::set_edges)
@@ -74,10 +97,28 @@ py::enum_<igl::viewer::ViewerData::DirtyFlags>(viewerdata_class, "DirtyFlags")
 
     .def("uniform_colors", [] (igl::viewer::ViewerData& data, const Eigen::MatrixXd& ambient, const Eigen::MatrixXd& diffuse, const Eigen::MatrixXd& specular)
     {
-      assert_is_Vector3("ambient",ambient);
-      assert_is_Vector3("diffuse",diffuse);
-      assert_is_Vector3("specular",specular);
-      data.uniform_colors(ambient,diffuse, specular);
+      if (ambient.cols() == 3)
+      {
+        assert_is_Vector3("ambient",ambient);
+        assert_is_Vector3("diffuse",diffuse);
+        assert_is_Vector3("specular",specular);
+        Eigen::Vector3d vambient = ambient;
+        Eigen::Vector3d vdiffuse = diffuse;
+        Eigen::Vector3d vspecular = specular;
+        data.uniform_colors(vambient,vdiffuse, vspecular);
+      }
+
+      if (ambient.cols() == 4)
+      {
+        assert_is_Vector4("ambient",ambient);
+        assert_is_Vector4("diffuse",diffuse);
+        assert_is_Vector4("specular",specular);
+        Eigen::Vector4d vambient = ambient;
+        Eigen::Vector4d vdiffuse = diffuse;
+        Eigen::Vector4d vspecular = specular;
+        data.uniform_colors(vambient,vdiffuse,vspecular);
+      }
+
     })
 
     .def("grid_texture", &igl::viewer::ViewerData::grid_texture)
@@ -188,8 +229,14 @@ py::class_<igl::viewer::ViewerCore> viewercore_class(me, "ViewerCore");
     })
 
     .def_readwrite("lighting_factor",&igl::viewer::ViewerCore::lighting_factor)
-
     .def_readwrite("model_zoom",&igl::viewer::ViewerCore::model_zoom)
+
+    .def_property("trackball_angle",
+    [](const igl::viewer::ViewerCore& core) {return Eigen::Quaterniond(core.trackball_angle.cast<double>());},
+    [](igl::viewer::ViewerCore& core, const Eigen::Quaterniond& q)
+    {
+      core.trackball_angle = Eigen::Quaternionf(q.cast<float>());
+    })
 
     .def_property("model_translation",
     [](const igl::viewer::ViewerCore& core) {return Eigen::MatrixXd(core.model_translation.cast<double>());},
@@ -316,13 +363,13 @@ py::class_<igl::viewer::ViewerCore> viewercore_class(me, "ViewerCore");
 // UI Enumerations
     py::class_<igl::viewer::Viewer> viewer_class(me, "Viewer");
 
-    #ifdef IGL_VIEWER_WITH_NANOGUI
-    py::object fh = (py::object) py::module::import("nanogui").attr("FormHelper");
-    py::class_<nanogui::FormHelper> form_helper_class(me, "FormHelper", fh);
+//    #ifdef IGL_VIEWER_WITH_NANOGUI
+//    py::object fh = (py::object) py::module::import("nanogui").attr("FormHelper");
+//    py::class_<nanogui::FormHelper> form_helper_class(me, "FormHelper", fh);
 
-    py::object screen = (py::object) py::module::import("nanogui").attr("Screen");
-    py::class_<nanogui::Screen> screen_class(me, "Screen", screen);
-    #endif
+//    py::object screen = (py::object) py::module::import("nanogui").attr("Screen");
+//    py::class_<nanogui::Screen> screen_class(me, "Screen", screen);
+//    #endif
 
     py::enum_<igl::viewer::Viewer::MouseButton>(viewer_class, "MouseButton")
         .value("Left", igl::viewer::Viewer::MouseButton::Left)

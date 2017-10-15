@@ -20,18 +20,18 @@ namespace igl
   //   DerivedY  Type of matrix Y
   // Inputs:
   //   X  m by n Matrix to be cumulatively summed.
-  //   dim  dimension to take cumlative sum (1 or 2)
+  //   dim  dimension to take cumulative sum (1 or 2)
   // Output:
   //   Y  m by n Matrix containing cumulative sum.
   //
   template <typename DerivedX, typename DerivedY>
   IGL_INLINE void cumsum(
-    const Eigen::PlainObjectBase<DerivedX > & X,
+    const Eigen::MatrixBase<DerivedX > & X,
     const int dim,
     Eigen::PlainObjectBase<DerivedY > & Y);
   //template <typename DerivedX, typename DerivedY>
   //IGL_INLINE void cumsum(
-  //  const Eigen::PlainObjectBase<DerivedX > & X,
+  //  const Eigen::MatrixBase<DerivedX > & X,
   //  Eigen::PlainObjectBase<DerivedY > & Y);
 }
 

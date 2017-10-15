@@ -37,8 +37,12 @@ template <typename DerivedV, typename DerivedF>
 IGL_INLINE void grad(const Eigen::PlainObjectBase<DerivedV>&V,
                      const Eigen::PlainObjectBase<DerivedF>&F,
                     Eigen::SparseMatrix<typename DerivedV::Scalar> &G,
+<<<<<<< HEAD
                     bool uniform = false,
                     NTInterrupter* interrupter = nullptr);
+=======
+                    bool uniform = false);
+>>>>>>> 2d7e665bed2543ccc29e6450f4036a661e308f9f
 }
 #ifndef IGL_STATIC_LIBRARY
 #  include "grad.cpp"

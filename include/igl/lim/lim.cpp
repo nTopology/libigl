@@ -135,5 +135,5 @@ IGL_INLINE igl::lim::State igl::lim::lim(
 }
 
 #ifdef IGL_STATIC_LIBRARY
-// Explicit template specialization
+// Explicit template instantiation
 #endif

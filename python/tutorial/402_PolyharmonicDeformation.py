@@ -1,3 +1,10 @@
+# This file is part of libigl, a simple c++ geometry processing library.
+#
+# Copyright (C) 2017 Sebastian Koch <s.koch@tu-berlin.de> and Daniele Panozzo <daniele.panozzo@gmail.com>
+#
+# This Source Code Form is subject to the terms of the Mozilla Public License
+# v. 2.0. If a copy of the MPL was not distributed with this file, You can
+# obtain one at http://mozilla.org/MPL/2.0/.
 import sys, os
 
 # Add the igl library to the modules search path
@@ -93,8 +100,8 @@ viewer = igl.viewer.Viewer()
 viewer.data.set_mesh(U, F)
 viewer.core.show_lines = False
 viewer.data.set_colors(C)
-# viewer.core.trackball_angle = igl.eigen.Quaterniond(0.81,-0.58,-0.03,-0.03)
-# viewer.core.trackball_angle.normalize()
+viewer.core.trackball_angle = igl.eigen.Quaterniond(0.81,-0.58,-0.03,-0.03)
+viewer.core.trackball_angle.normalize()
 viewer.callback_pre_draw = pre_draw
 viewer.callback_key_down = key_down
 viewer.core.is_animating = True

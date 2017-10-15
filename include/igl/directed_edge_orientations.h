@@ -11,6 +11,10 @@
 
 #include <Eigen/Core>
 #include <Eigen/Geometry>
+<<<<<<< HEAD
+=======
+#include <Eigen/StdVector>
+>>>>>>> 2d7e665bed2543ccc29e6450f4036a661e308f9f
 #include <vector>
 
 namespace igl

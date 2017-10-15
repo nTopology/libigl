@@ -1,3 +1,10 @@
+// This file is part of libigl, a simple c++ geometry processing library.
+//
+// Copyright (C) 2017 Sebastian Koch <s.koch@tu-berlin.de> and Daniele Panozzo <daniele.panozzo@gmail.com>
+//
+// This Source Code Form is subject to the terms of the Mozilla Public License
+// v. 2.0. If a copy of the MPL was not distributed with this file, You can
+// obtain one at http://mozilla.org/MPL/2.0/.
 #include <Eigen/Geometry>
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
@@ -7,14 +14,13 @@
 
 /// Creates Python bindings for a dynamic Eigen matrix
 template <typename Type>
-py::class_<Type> bind_eigen_2(py::module &m, const char *name,
-                                py::object parent = py::object()) {
+py::class_<Type> bind_eigen_2(py::module &m, const char *name) {
     typedef typename Type::Scalar Scalar;
 
     /* Many Eigen functions are templated and can't easily be referenced using
        a function pointer, thus a big portion of the binding code below
        instantiates Eigen code using small anonymous wrapper functions */
-    py::class_<Type> matrix(m, name, parent);
+    py::class_<Type> matrix(m, name, py::buffer_protocol());
 
     matrix
         /* Constructors */
@@ -23,6 +29,26 @@ py::class_<Type> bind_eigen_2(py::module &m, const char *name,
         .def("__init__", [](Type &m, Scalar f) {
             new (&m) Type(1, 1);
             m(0, 0) = f;
+        })
+        .def("__init__", [](Type &m, py::buffer b) {
+            py::buffer_info info = b.request();
+            if (info.format != py::format_descriptor<Scalar>::format())
+                throw std::runtime_error("Incompatible buffer format!");
+            if (info.ndim == 1) {
+                new (&m) Type(info.shape[0], 1);
+                memcpy(m.data(), info.ptr, sizeof(Scalar) * m.size());
+            } else if (info.ndim == 2) {
+                if (info.strides[0] == sizeof(Scalar)) {
+                    new (&m) Type(info.shape[0], info.shape[1]);
+                    memcpy(m.data(), info.ptr, sizeof(Scalar) * m.size());
+                } else {
+                    new (&m) Type(info.shape[1], info.shape[0]);
+                    memcpy(m.data(), info.ptr, sizeof(Scalar) * m.size());
+                    m.transposeInPlace();
+                }
+            } else {
+                throw std::runtime_error("Incompatible buffer dimension!");
+            }
         })
         .def("__init__", [](Type &m, std::vector<std::vector< Scalar> >& b) {
           if (b.size() == 0)
@@ -66,26 +92,7 @@ py::class_<Type> bind_eigen_2(py::module &m, const char *name,
 
           return;
         })
-        .def("__init__", [](Type &m, py::buffer b) {
-            py::buffer_info info = b.request();
-            if (info.format != py::format_descriptor<Scalar>::value())
-                throw std::runtime_error("Incompatible buffer format!");
-            if (info.ndim == 1) {
-                new (&m) Type(info.shape[0], 1);
-                memcpy(m.data(), info.ptr, sizeof(Scalar) * m.size());
-            } else if (info.ndim == 2) {
-                if (info.strides[0] == sizeof(Scalar)) {
-                    new (&m) Type(info.shape[0], info.shape[1]);
-                    memcpy(m.data(), info.ptr, sizeof(Scalar) * m.size());
-                } else {
-                    new (&m) Type(info.shape[1], info.shape[0]);
-                    memcpy(m.data(), info.ptr, sizeof(Scalar) * m.size());
-                    m.transposeInPlace();
-                }
-            } else {
-                throw std::runtime_error("Incompatible buffer dimension!");
-            }
-        })
+
 
         /* Size query functions */
         .def("size", [](const Type &m) { return m.size(); })
@@ -319,7 +326,7 @@ py::class_<Type> bind_eigen_2(py::module &m, const char *name,
                 m.data(),                /* Pointer to buffer */
                 sizeof(Scalar),          /* Size of one scalar */
                 /* Python struct-style format descriptor */
-                py::format_descriptor<Scalar>::value(),
+                py::format_descriptor<Scalar>::format(),
                 2,                       /* Number of dimensions */
                 { (size_t) m.rows(),     /* Buffer dimensions */
                   (size_t) m.cols() },
@@ -347,14 +354,13 @@ py::class_<Type> bind_eigen_2(py::module &m, const char *name,
 
 /// Creates Python bindings for a dynamic Eigen sparse order-2 tensor (i.e. a matrix)
 template <typename Type>
-py::class_<Type> bind_eigen_sparse_2(py::module &m, const char *name,
-                                py::object parent = py::object()) {
+py::class_<Type> bind_eigen_sparse_2(py::module &m, const char *name) {
     typedef typename Type::Scalar Scalar;
 
     /* Many Eigen functions are templated and can't easily be referenced using
        a function pointer, thus a big portion of the binding code below
        instantiates Eigen code using small anonymous wrapper functions */
-    py::class_<Type> matrix(m, name, parent);
+    py::class_<Type> matrix(m, name, py::buffer_protocol());
 
     matrix
         /* Constructors */
@@ -532,14 +538,13 @@ py::class_<Type> bind_eigen_sparse_2(py::module &m, const char *name,
 
 /// Creates Python bindings for a diagonal Eigen sparse order-2 tensor (i.e. a matrix)
 template <typename Type>
-py::class_<Type> bind_eigen_diagonal_2(py::module &m, const char *name,
-                                py::object parent = py::object()) {
+py::class_<Type> bind_eigen_diagonal_2(py::module &m, const char *name) {
     typedef typename Type::Scalar Scalar;
 
     /* Many Eigen functions are templated and can't easily be referenced using
        a function pointer, thus a big portion of the binding code below
        instantiates Eigen code using small anonymous wrapper functions */
-    py::class_<Type> matrix(m, name, parent);
+    py::class_<Type> matrix(m, name, py::buffer_protocol());
 
     matrix
         /* Constructors */
@@ -632,7 +637,7 @@ void python_export_vector(py::module &m) {
 
     /* Bindings for MatrixXi */
     bind_eigen_2<Eigen::MatrixXi> (me, "MatrixXi");
-//    py::implicitly_convertible<py::buffer, Eigen::MatrixXi>();
+    //py::implicitly_convertible<py::buffer, Eigen::MatrixXi>();
     //py::implicitly_convertible<double, Eigen::MatrixXi>();
 
     /* Bindings for MatrixXb */
@@ -692,16 +697,21 @@ void python_export_vector(py::module &m) {
     .def("solve",[](const Eigen::SimplicialLLT<Eigen::SparseMatrix<double > >& s, const Eigen::MatrixXd& rhs) { return Eigen::MatrixXd(s.solve(rhs)); })
     ;
 
+    // Bindings for Affine3d
     py::class_<Eigen::Affine3d > affine3d(me, "Affine3d");
 
     affine3d
     .def(py::init<>())
+    .def_static("Identity", []() { return Eigen::Affine3d::Identity(); })
     .def("setIdentity",[](Eigen::Affine3d& a){
         return a.setIdentity();
     })
     .def("rotate",[](Eigen::Affine3d& a, double angle, Eigen::MatrixXd axis) {
         assert_is_Vector3("axis", axis);
         return a.rotate(Eigen::AngleAxisd(angle, Eigen::Vector3d(axis)));
+    })
+    .def("rotate",[](Eigen::Affine3d& a, Eigen::Quaterniond quat) {
+        return a.rotate(quat);
     })
     .def("translate",[](Eigen::Affine3d& a, Eigen::MatrixXd offset) {
         assert_is_Vector3("offset", offset);
@@ -711,13 +721,51 @@ void python_export_vector(py::module &m) {
         return Eigen::MatrixXd(a.matrix());
     })
     ;
-    /* Bindings for Quaterniond*/
-    //py::class_<Eigen::Quaterniond > quaterniond(me, "Quaterniond");
-    //
-    // quaterniond
-    // .def(py::init<>())
-    // .def(py::init<double, double, double, double>())
-    // ;
+    // Bindings for Quaterniond
+    py::class_<Eigen::Quaterniond > quaterniond(me, "Quaterniond");
+    
+    quaterniond
+    .def(py::init<>())
+    .def(py::init<double, double, double, double>())
+    .def("__init__", [](Eigen::Quaterniond &q, double angle, Eigen::MatrixXd axis) {
+        assert_is_Vector3("axis", axis);
+        new (&q) Eigen::Quaterniond(Eigen::AngleAxisd(angle, Eigen::Vector3d(axis)));
+    })
+    .def_static("Identity", []() { return Eigen::Quaterniond::Identity(); })
+    .def("__repr__", [](const Eigen::Quaterniond &v) {
+        std::ostringstream oss;
+        oss << "(" << v.w() << ", " << v.x() << ", " << v.y() << ", " << v.z() << ")";
+        return oss.str();
+    })
+    .def("conjugate",[](Eigen::Quaterniond& q) {
+        return q.conjugate();
+    })
+    .def("normalize",[](Eigen::Quaterniond& q) {
+        return q.normalize();
+    })
+    .def("slerp",[](Eigen::Quaterniond& q, double & t, Eigen::Quaterniond other) {
+        return q.slerp(t, other);
+    })
+//    .def_cast(-py::self)
+//    .def_cast(py::self + py::self)
+//    .def_cast(py::self - py::self)
+    .def_cast(py::self * py::self)
+    // .def_cast(py::self - Scalar())
+    // .def_cast(py::self * Scalar())
+    // .def_cast(py::self / Scalar())
+
+//    .def("__mul__", []
+//    (const Type &a, const Scalar& b)
+//    {
+//      return Eigen::Matrix<Scalar,Eigen::Dynamic,Eigen::Dynamic>(a * b);
+//    })
+//    .def("__rmul__", [](const Type& a, const Scalar& b)
+//    {
+//      return Eigen::Matrix<Scalar,Eigen::Dynamic,Eigen::Dynamic>(b * a);
+//    })
+    ;
+
+    
 
 
 

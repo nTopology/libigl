@@ -108,7 +108,7 @@ namespace igl
         // matrices like lists of faces or elements
         template <typename DerivedM>
         inline MatlabWorkspace& save_index(
-          const Eigen::PlainObjectBase<DerivedM>& M,
+          const Eigen::DenseBase<DerivedM>& M,
           const std::string & name);
         template <typename ScalarM>
         inline MatlabWorkspace& save_index(
@@ -298,8 +298,10 @@ inline igl::matlab::MatlabWorkspace& igl::matlab::MatlabWorkspace::save(
   data.push_back(mx_data);
   names.push_back(name);
   // Copy data immediately
-  // Q: Won't this be incorrect for integers?
-  copy(M.data(),M.data()+M.size(),mxGetPr(mx_data));
+  // Use Eigen's map and cast to copy
+  Eigen::Map< Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic> > 
+    map(mxGetPr(mx_data),m,n);
+  map = M.template cast<double>();
   return *this;
 }
 
@@ -386,7 +388,7 @@ inline igl::matlab::MatlabWorkspace& igl::matlab::MatlabWorkspace::save(
 template <typename DerivedM>
 inline igl::matlab::MatlabWorkspace& 
   igl::matlab::MatlabWorkspace::save_index(
-    const Eigen::PlainObjectBase<DerivedM>& M,
+    const Eigen::DenseBase<DerivedM>& M,
     const std::string & name)
 {
   DerivedM Mp1 = M;
@@ -432,7 +434,8 @@ inline bool igl::matlab::MatlabWorkspace::find(
   //cout<<name<<": "<<mxGetM(mx_data)<<" "<<mxGetN(mx_data)<<endl;
   const int m = mxGetM(mx_data);
   const int n = mxGetN(mx_data);
-  // Handle vectors
+  // Handle vectors: in the sense that anything found becomes a column vector,
+  // whether it was column vector, row vector or matrix
   if(DerivedM::IsVectorAtCompileTime)
   {
     assert(m==1 || n==1 || (m==0 && n==0));
@@ -441,10 +444,10 @@ inline bool igl::matlab::MatlabWorkspace::find(
   {
     M.resize(m,n);
   }
-  copy(
-    mxGetPr(mx_data),
-    mxGetPr(mx_data)+mxGetNumberOfElements(mx_data),
-    M.data());
+  assert(mxGetNumberOfElements(mx_data) == M.size());
+  // Use Eigen's map and cast to copy
+  M = Eigen::Map< Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic> > 
+    (mxGetPr(mx_data),M.rows(),M.cols()).cast<typename DerivedM::Scalar>();
   return true;
 }
 
@@ -473,15 +476,15 @@ inline bool igl::matlab::MatlabWorkspace::find(
   //cout<<name<<": "<<mxGetM(mx_data)<<" "<<mxGetN(mx_data)<<endl;
   const int m = mxGetM(mx_data);
   const int n = mxGetN(mx_data);
-
+  // TODO: It should be possible to directly load the data into the sparse
+  // matrix without going through the triplets
   // Copy data immediately
   double * pr = mxGetPr(mx_data);
   mwIndex * ir = mxGetIr(mx_data);
   mwIndex * jc = mxGetJc(mx_data);
-
   vector<Triplet<MT> > MIJV;
-  MIJV.reserve(mxGetNumberOfElements(mx_data));
-
+  const int nnz = mxGetNzmax(mx_data);
+  MIJV.reserve(nnz);
   // Iterate over outside
   int k = 0;
   for(int j=0; j<n;j++)
@@ -498,8 +501,8 @@ inline bool igl::matlab::MatlabWorkspace::find(
   }
   M.resize(m,n);
   M.setFromTriplets(MIJV.begin(),MIJV.end());
-  return true;
 
+  return true;
 }
 
 inline bool igl::matlab::MatlabWorkspace::find( 

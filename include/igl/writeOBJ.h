@@ -26,20 +26,29 @@ namespace igl
   //   TC  #TC by 2|3 texture coordinates
   //   FTC #F by 3|4 corner texture coord indices into TC
   // Returns true on success, false on error
-  template <typename DerivedV, typename DerivedF, typename DerivedT>
+  //
+  // Known issues: Horrifyingly, this does not have the same order of
+  // parameters as readOBJ.
+  template <
+    typename DerivedV, 
+    typename DerivedF,
+    typename DerivedCN, 
+    typename DerivedFN,
+    typename DerivedTC, 
+    typename DerivedFTC>
   IGL_INLINE bool writeOBJ(
     const std::string str,
-    const Eigen::PlainObjectBase<DerivedV>& V,
-    const Eigen::PlainObjectBase<DerivedF>& F,
-    const Eigen::PlainObjectBase<DerivedV>& CN,
-    const Eigen::PlainObjectBase<DerivedF>& FN,
-    const Eigen::PlainObjectBase<DerivedT>& TC,
-    const Eigen::PlainObjectBase<DerivedF>& FTC);
+    const Eigen::MatrixBase<DerivedV>& V,
+    const Eigen::MatrixBase<DerivedF>& F,
+    const Eigen::MatrixBase<DerivedCN>& CN,
+    const Eigen::MatrixBase<DerivedFN>& FN,
+    const Eigen::MatrixBase<DerivedTC>& TC,
+    const Eigen::MatrixBase<DerivedFTC>& FTC);
   template <typename DerivedV, typename DerivedF>
   IGL_INLINE bool writeOBJ(
     const std::string str,
-    const Eigen::PlainObjectBase<DerivedV>& V,
-    const Eigen::PlainObjectBase<DerivedF>& F);
+    const Eigen::MatrixBase<DerivedV>& V,
+    const Eigen::MatrixBase<DerivedF>& F);
 
 }
 
