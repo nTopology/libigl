@@ -774,15 +774,14 @@ IGL_INLINE void igl::slim_precompute(
   else if (F.cols() == 4) {
     igl::volume(V, F, data.M);
   }
-  
-  data.mesh_area = data.M.sum();
+  data.M /= data.M.sum();
+
   data.mesh_improvement_3d = false; // whether to use a jacobian derived from a real mesh or an abstract regular mesh (used for mesh improvement)
   data.exp_factor = 1.0; // param used only for exponential energies (e.g exponential symmetric dirichlet)
 
   assert (F.cols() == 3 || F.cols() == 4);
 
   igl::slim::pre_calc(data);
-  data.energy = igl::slim::compute_energy(data,data.V_o) / data.mesh_area;
 }
 
 IGL_INLINE Eigen::MatrixXd igl::slim_solve(igl::SLIMData &data, int iter_num)
@@ -792,17 +791,27 @@ IGL_INLINE Eigen::MatrixXd igl::slim_solve(igl::SLIMData &data, int iter_num)
     Eigen::MatrixXd dest_res;
     dest_res = data.V_o;
 
+    // adaptive soft penalization scheme
+    if (data.adaptive_soft_p) {
+      data.soft_const_p = 1;
+      igl::slim::compute_jacobians(data, data.V_o);
+      auto deform_energy =
+        igl::mapping_energy_with_jacobians(data.Ji, data.M, data.slim_energy, data.exp_factor);
+      auto soft_constraint_energy = 
+        igl::slim::compute_soft_const_energy(data, data.V, data.F, data.V_o);
+      auto gamma = 1e1 / soft_constraint_energy * deform_energy;
+      data.soft_const_p = std::max(std::min(gamma, data.adaptive_soft_p_max), data.adaptive_soft_p_min);
+    }
+
     // Solve Weighted Proxy
     igl::slim::update_weights_and_closest_rotations(data, dest_res);
     igl::slim::solve_weighted_arap(data,data.V, data.F, dest_res, data.b, data.bc);
 
-    double old_energy = data.energy;
-
     std::function<double(Eigen::MatrixXd &)> compute_energy = [&](
         Eigen::MatrixXd &aaa) { return igl::slim::compute_energy(data,aaa); };
 
-    data.energy = igl::flip_avoiding_line_search(data.F, data.V_o, dest_res, compute_energy,
-                                                 data.energy * data.mesh_area) / data.mesh_area;
+    data.energy = igl::flip_avoiding_line_search(
+                    data.F, data.V_o, dest_res, compute_energy);
   }
   return data.V_o;
 }

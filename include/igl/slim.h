@@ -37,6 +37,9 @@ struct SLIMData
   Eigen::VectorXi b;
   Eigen::MatrixXd bc;
   double soft_const_p;
+  bool adaptive_soft_p       = false;
+  double adaptive_soft_p_min = 1e-2;
+  double adaptive_soft_p_max = 1e6;
 
   double exp_factor; // used for exponential energies, ignored otherwise
   bool mesh_improvement_3d; // only supported for 3d
@@ -47,7 +50,6 @@ struct SLIMData
 
   // INTERNAL
   Eigen::VectorXd M;
-  double mesh_area;
   double avg_edge_length;
   int v_num;
   int f_num;
