@@ -25,7 +25,18 @@ namespace igl
   //        triangle TT(i,j) that is adjacent with triangle i
   //
   // NOTE: the first edge of a triangle is [0,1] the second [1,2] and the third
-  //       [2,3].  this convention is DIFFERENT from cotmatrix_entries.h
+  //       [2,3].  this convention is DIFFERENT from
+  //       cotmatrix_entries.h/edge_lengths.h/etc. To fix this you could use:
+  //           // Fix mis-match convention
+  //           {
+  //             Eigen::PermutationMatrix<3,3> perm(3);
+  //             perm.indices() = Eigen::Vector3i(1,2,0);
+  //             TT = (TT*perm).eval();
+  //             TTi = (TTi*perm).eval();
+  //             for(int i=0;i<TTi.rows();i++)
+  //               for(int j=0;j<TTi.cols();j++)
+  //                 TTi(i,j)=TTi(i,j)==-1?-1:(TTi(i,j)+3-1)%3;
+  //           }
   template <typename DerivedF, typename DerivedTT, typename DerivedTTi>
   IGL_INLINE void triangle_triangle_adjacency(
     const Eigen::MatrixBase<DerivedF>& F,
@@ -106,6 +117,19 @@ namespace igl
       const bool construct_TTi,
       std::vector<std::vector<std::vector<TTIndex> > > & TT,
       std::vector<std::vector<std::vector<TTiIndex> > > & TTi);
+  template <
+    typename DerivedEMAP,
+    typename DeriveduEC,
+    typename DeriveduEE,
+    typename TTIndex, 
+    typename TTiIndex>
+  IGL_INLINE void triangle_triangle_adjacency(
+    const Eigen::MatrixBase<DerivedEMAP> & EMAP,
+    const Eigen::MatrixBase<DeriveduEC> & uEC,
+    const Eigen::MatrixBase<DeriveduEE> & uEE,
+    const bool construct_TTi,
+    std::vector<std::vector<std::vector<TTIndex> > > & TT,
+    std::vector<std::vector<std::vector<TTiIndex> > > & TTi);
 }
 
 #ifndef IGL_STATIC_LIBRARY

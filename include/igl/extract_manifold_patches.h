@@ -1,9 +1,9 @@
 // This file is part of libigl, a simple c++ geometry processing library.
-// 
+//
 // Copyright (C) 2016 Alec Jacobson <alecjacobson@gmail.com>
-// 
-// This Source Code Form is subject to the terms of the Mozilla Public License 
-// v. 2.0. If a copy of the MPL was not distributed with this file, You can 
+//
+// This Source Code Form is subject to the terms of the Mozilla Public License
+// v. 2.0. If a copy of the MPL was not distributed with this file, You can
 // obtain one at http://mozilla.org/MPL/2.0/.
 #ifndef IGL_EXTRACT_MANIFOLD_PATCHES
 #define IGL_EXTRACT_MANIFOLD_PATCHES
@@ -20,29 +20,42 @@ namespace igl {
     // Inputs:
     //   F  #F by 3 list representing triangles.
     //   EMAP  #F*3 list of indices of unique undirected edges.
-    //   uE2E  #uE list of lists of indices into E of coexisting edges.
-    //
+    //   uEC  #uE+1 list of cumsums of directed edges sharing each unique edge
+    //   uEE  #F*3 list of indices into E (see `igl::unique_edge_map`)
     // Output:
     //   P  #F list of patch incides.
-    //
     // Returns:
     //   number of manifold patches.
+    template <
+      typename DerivedF,
+      typename DerivedEMAP,
+      typename DeriveduEC,
+      typename DeriveduEE,
+      typename DerivedP>
+    IGL_INLINE size_t extract_manifold_patches(
+      const Eigen::MatrixBase<DerivedF>& F,
+      const Eigen::MatrixBase<DerivedEMAP>& EMAP,
+      const Eigen::MatrixBase<DeriveduEC>& uEC,
+      const Eigen::MatrixBase<DeriveduEE>& uEE,
+      Eigen::PlainObjectBase<DerivedP>& P);
+    // Inputs:
+    //   uE2E  #uE list of lists of indices into E of coexisting edges.
     template <
       typename DerivedF,
       typename DerivedEMAP,
       typename uE2EType,
       typename DerivedP>
     IGL_INLINE size_t extract_manifold_patches(
-      const Eigen::PlainObjectBase<DerivedF>& F,
-      const Eigen::PlainObjectBase<DerivedEMAP>& EMAP,
+      const Eigen::MatrixBase<DerivedF>& F,
+      const Eigen::MatrixBase<DerivedEMAP>& EMAP,
       const std::vector<std::vector<uE2EType> >& uE2E,
       Eigen::PlainObjectBase<DerivedP>& P);
     template <
-      typename DerivedF,
-      typename DerivedP>
+        typename DerivedF,
+        typename DerivedP>
     IGL_INLINE size_t extract_manifold_patches(
-      const Eigen::PlainObjectBase<DerivedF>& F,
-      Eigen::PlainObjectBase<DerivedP>& P);
+        const Eigen::MatrixBase<DerivedF> &F,
+        Eigen::PlainObjectBase<DerivedP> &P);
 }
 #ifndef IGL_STATIC_LIBRARY
 #  include "extract_manifold_patches.cpp"

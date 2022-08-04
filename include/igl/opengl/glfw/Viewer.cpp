@@ -14,6 +14,7 @@
 #include <Eigen/LU>
 
 #include "../gl.h"
+#include "../report_gl_error.h"
 #include <GLFW/glfw3.h>
 
 #include <cmath>
@@ -29,7 +30,7 @@
 #include <igl/project.h>
 #include <igl/get_seconds.h>
 #include <igl/readOBJ.h>
-#include <igl/readOFF.h>
+#include <igl/read_triangle_mesh.h>
 #include <igl/adjacency_list.h>
 #include <igl/writeOBJ.h>
 #include <igl/writeOFF.h>
@@ -159,12 +160,12 @@ namespace glfw
     else
     {
       // Set default windows width
-      if (windowWidth <= 0 & core_list.size() == 1 && core().viewport[2] > 0)
+      if (windowWidth <= 0 && core_list.size() == 1 && core().viewport[2] > 0)
         windowWidth = core().viewport[2];
       else if (windowWidth <= 0)
         windowWidth = 1280;
       // Set default windows height
-      if (windowHeight <= 0 & core_list.size() == 1 && core().viewport[3] > 0)
+      if (windowHeight <= 0 && core_list.size() == 1 && core().viewport[3] > 0)
         windowHeight = core().viewport[3];
       else if (windowHeight <= 0)
         windowHeight = 800;
@@ -177,7 +178,7 @@ namespace glfw
     }
     glfwMakeContextCurrent(window);
     // Load OpenGL and its extensions
-    if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress))
+    if (!gladLoadGL((GLADloadfunc) glfwGetProcAddress))
     {
       printf("Failed to load OpenGL and its extensions\n");
       return(-1);
@@ -210,10 +211,18 @@ namespace glfw
     glfwGetWindowSize(window, &width_window, &height_window);
     highdpi = windowWidth/width_window;
     glfw_window_size(window,width_window,height_window);
-    //opengl.init();
-    core().align_camera_center(data().V,data().F);
     // Initialize IGL viewer
     init();
+    for(auto &core : this->core_list)
+    {
+      for(auto &data : this->data_list)
+      {
+        if(data.is_visible & core.id)
+        {
+          this->core(core.id).align_camera_center(data.V, data.F);
+        }
+      }
+    }
     return EXIT_SUCCESS;
   }
 
@@ -346,6 +355,7 @@ namespace glfw
     const std::string usage(R"(igl::opengl::glfw::Viewer usage:
   [drag]  Rotate scene
   A,a     Toggle animation (tight draw loop)
+  D,d     Toggle double sided lighting
   F,f     Toggle face based
   I,i     Toggle invert normals
   L,l     Toggle wireframe
@@ -396,15 +406,7 @@ namespace glfw
 
     std::string extension = mesh_file_name_string.substr(last_dot+1);
 
-    if (extension == "off" || extension =="OFF")
-    {
-      Eigen::MatrixXd V;
-      Eigen::MatrixXi F;
-      if (!igl::readOFF(mesh_file_name_string, V, F))
-        return false;
-      data().set_mesh(V,F);
-    }
-    else if (extension == "obj" || extension =="OBJ")
+    if (extension == "obj" || extension =="OBJ")
     {
       Eigen::MatrixXd corner_normals;
       Eigen::MatrixXi fNormIndices;
@@ -423,14 +425,21 @@ namespace glfw
       }
 
       data().set_mesh(V,F);
-      data().set_uv(UV_V,UV_F);
-
-    }
-    else
+      if(UV_V.rows() != 0 && UV_F.rows() != 0)
+      {
+        data().set_uv(UV_V,UV_F);
+      }
+    }else
     {
-      // unrecognized file type
-      printf("Error: %s is not a recognized file type.\n",extension.c_str());
-      return false;
+      Eigen::MatrixXd V;
+      Eigen::MatrixXi F;
+      if (!igl::read_triangle_mesh(mesh_file_name_string, V, F))
+      {
+        // unrecognized file type
+        printf("Error: %s is not a recognized file type.\n",extension.c_str());
+        return false;
+      }
+      data().set_mesh(V,F);
     }
 
     data().compute_normals();
@@ -438,11 +447,6 @@ namespace glfw
                    Eigen::Vector3d(255.0/255.0,228.0/255.0,58.0/255.0),
                    Eigen::Vector3d(255.0/255.0,235.0/255.0,80.0/255.0));
 
-    // Alec: why?
-    if (data().V_uv.rows() == 0)
-    {
-      data().grid_texture();
-    }
     for(int i=0;i<core_list.size(); i++)
         core_list[i].align_camera_center(data().V,data().F);
 
@@ -519,6 +523,12 @@ namespace glfw
         core().is_animating = !core().is_animating;
         return true;
       }
+      case 'D':
+      case 'd':
+      {
+        data().double_sided = !data().double_sided;
+        return true;
+      }
       case 'F':
       case 'f':
       {
@@ -580,10 +590,10 @@ namespace glfw
         return true;
       }
       case ';':
-        data().show_vertid = !data().show_vertid;
+        data().show_vertex_labels = !data().show_vertex_labels;
         return true;
       case ':':
-        data().show_faceid = !data().show_faceid;
+        data().show_face_labels = !data().show_face_labels;
         return true;
       default: break;//do nothing
     }
@@ -658,13 +668,11 @@ namespace glfw
 
 
     // Initialization code for the trackball
-    Eigen::RowVector3d center;
-    if (data().V.rows() == 0)
+    Eigen::RowVector3d center = Eigen::RowVector3d(0,0,0);
+    if(data().V.rows() > 0)
     {
-      center << 0,0,0;
-    }else
-    {
-      center = data().V.colwise().sum()/data().V.rows();
+      // be careful that V may be 2D
+      center.head(data().V.cols()) = data().V.colwise().sum()/data().V.rows();
     }
 
     Eigen::Vector3f coord =
@@ -931,6 +939,159 @@ namespace glfw
     }
   }
 
+  template <typename T>
+  IGL_INLINE void Viewer::draw_buffer(
+    igl::opengl::ViewerCore & core,
+    Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic> & R,
+    Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic> & G,
+    Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic> & B,
+    Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic> & A,
+    Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic> & D)
+  {
+    // follows igl::opengl::ViewerCore::draw_buffer, image is transposed from
+    // typical matrix view
+    const int width = R.rows() ? R.rows() :  core.viewport(2);
+    const int height = R.cols() ? R.cols() : core.viewport(3);
+    R.resize(width,height);
+    G.resize(width,height);
+    B.resize(width,height);
+    A.resize(width,height);
+    D.resize(width,height);
+
+    ////////////////////////////////////////////////////////////////////////
+    // Create an initial multisampled framebuffer
+    ////////////////////////////////////////////////////////////////////////
+    unsigned int framebuffer;
+    unsigned int color_buffer;
+    unsigned int depth_buffer;
+    {
+      glGenFramebuffers(1, &framebuffer);
+      glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+      // create a multisampled color attachment texture (is a texture really
+      // needed? Could this be a renderbuffer instead?)
+      glGenTextures(1, &color_buffer);
+      glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, color_buffer);
+      glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGBA, width, height, GL_TRUE);
+      glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+      glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, color_buffer, 0);
+      // create a (also multisampled) renderbuffer object for depth and stencil attachments
+      glGenRenderbuffers(1, &depth_buffer);
+      glBindRenderbuffer(GL_RENDERBUFFER, depth_buffer);
+      glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH24_STENCIL8, width, height);
+      glBindRenderbuffer(GL_RENDERBUFFER, 0);
+      glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depth_buffer);
+
+
+      assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
+      report_gl_error("glCheckFramebufferStatus: ");
+      glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+
+    ////////////////////////////////////////////////////////////////////////
+    // configure second post-processing framebuffer
+    ////////////////////////////////////////////////////////////////////////
+    unsigned int intermediateFBO;
+    unsigned int screenTexture, depthTexture;
+    {
+      glGenFramebuffers(1, &intermediateFBO);
+      glBindFramebuffer(GL_FRAMEBUFFER, intermediateFBO);
+      // create a color attachment texture
+      glGenTextures(1, &screenTexture);
+      glBindTexture(GL_TEXTURE_2D, screenTexture);
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, screenTexture, 0);
+      
+      // create depth attachment texture
+      glGenTextures(1, &depthTexture);
+      glBindTexture(GL_TEXTURE_2D, depthTexture);
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, width, height, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depthTexture, 0);
+
+      assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
+      glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+
+    ////////////////////////////////////////////////////////////////////////
+    // attach initial framebuffer and draw all `data`
+    ////////////////////////////////////////////////////////////////////////
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    // Clear the buffer
+    glClearColor(
+      core.background_color(0), 
+      core.background_color(1), 
+      core.background_color(2),
+      core.background_color(3));
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    // Save old viewport
+    Eigen::Vector4f viewport_ori = core.viewport;
+    core.viewport << 0,0,width,height;
+    // Draw all `data`
+    for (auto& data : data_list)
+    {
+      if (data.is_visible & core.id)
+      {
+        core.draw(data);
+      }
+    }
+    // Restore viewport
+    core.viewport = viewport_ori;
+
+    ////////////////////////////////////////////////////////////////////////
+    // attach second framebuffer and redraw (for anti-aliasing?)
+    ////////////////////////////////////////////////////////////////////////
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, intermediateFBO);
+    report_gl_error("before: ");
+    glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+    report_gl_error("glBlitFramebuffer: ");
+
+
+    ////////////////////////////////////////////////////////////////////////
+    // Read pixel data from framebuffer, write into buffers
+    ////////////////////////////////////////////////////////////////////////
+    glBindFramebuffer(GL_FRAMEBUFFER, intermediateFBO);
+    // Copy back in the given Eigen matrices
+    {
+      typedef typename std::conditional< std::is_floating_point<T>::value,GLfloat,GLubyte>::type GLType;
+      GLenum type = std::is_floating_point<T>::value ?  GL_FLOAT : GL_UNSIGNED_BYTE;
+      GLType* pixels = (GLType*)calloc(width*height*4,sizeof(GLType));
+      GLType * depth = (GLType*)calloc(width*height*1,sizeof(GLType));
+      glReadPixels(0, 0,width, height,GL_RGBA,            type, pixels);
+      glReadPixels(0, 0,width, height,GL_DEPTH_COMPONENT, type, depth);
+      int count = 0;
+      for (unsigned j=0; j<height; ++j)
+      {
+        for (unsigned i=0; i<width; ++i)
+        {
+          R(i,j) = pixels[count*4+0];
+          G(i,j) = pixels[count*4+1];
+          B(i,j) = pixels[count*4+2];
+          A(i,j) = pixels[count*4+3];
+          D(i,j) = depth[count*1+0];
+          ++count;
+        }
+      }
+      // Clean up
+      free(pixels);
+      free(depth);
+    }
+
+    // Clean up
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDeleteTextures(1, &screenTexture);
+    glDeleteTextures(1, &depthTexture);
+    glDeleteTextures(1, &color_buffer);
+    glDeleteRenderbuffers(1, &depth_buffer);
+    glDeleteFramebuffers(1, &framebuffer);
+    glDeleteFramebuffers(1, &intermediateFBO);
+  }
+
   IGL_INLINE void Viewer::resize(int w,int h)
   {
     if (window) {
@@ -1129,3 +1290,9 @@ namespace glfw
 } // end namespace
 } // end namespace
 }
+
+#ifdef IGL_STATIC_LIBRARY
+template void igl::opengl::glfw::Viewer::draw_buffer<unsigned char>(igl::opengl::ViewerCore&, Eigen::Matrix<unsigned char, -1, -1, 0, -1, -1>&, Eigen::Matrix<unsigned char, -1, -1, 0, -1, -1>&, Eigen::Matrix<unsigned char, -1, -1, 0, -1, -1>&, Eigen::Matrix<unsigned char, -1, -1, 0, -1, -1>&, Eigen::Matrix<unsigned char, -1, -1, 0, -1, -1>&);
+template void igl::opengl::glfw::Viewer::draw_buffer<double>(igl::opengl::ViewerCore&, Eigen::Matrix<double, -1, -1, 0, -1, -1>&, Eigen::Matrix<double, -1, -1, 0, -1, -1>&, Eigen::Matrix<double, -1, -1, 0, -1, -1>&, Eigen::Matrix<double, -1, -1, 0, -1, -1>&, Eigen::Matrix<double, -1, -1, 0, -1, -1>&);
+template void igl::opengl::glfw::Viewer::draw_buffer<float>(igl::opengl::ViewerCore&, Eigen::Matrix<float, -1, -1, 0, -1, -1>&, Eigen::Matrix<float, -1, -1, 0, -1, -1>&, Eigen::Matrix<float, -1, -1, 0, -1, -1>&, Eigen::Matrix<float, -1, -1, 0, -1, -1>&, Eigen::Matrix<float, -1, -1, 0, -1, -1>&);
+#endif
