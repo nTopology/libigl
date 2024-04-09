@@ -75,10 +75,8 @@ IGL_INLINE void igl::remove_unreferenced(
   }
 
   // Sum the occupied cells
-  int newsize = mark.count();
-
   I.resize(n,1);
-  J.resize(newsize,1);
+  J.resize(mark.count(),1);
 
   // Do a pass on the marked vector and remove the unreferenced vertices
   int count = 0;
