@@ -30,7 +30,7 @@ IGL_INLINE void igl::boundary_facets(
   Eigen::PlainObjectBase<DerivedJ>& J,
   Eigen::PlainObjectBase<DerivedK>& K)
 {
-  const int simplex_size = T.cols();
+  const int simplex_size = (int)T.cols();
   // Handle boring base case
   if(T.rows() == 0)
   {
@@ -83,7 +83,7 @@ IGL_INLINE void igl::boundary_facets(
   }
   Eigen::VectorXi C;
   igl::accumarray(n,1,C);
-  const int ones = (C.array()==1).count();
+  const int ones = (int)(C.array()==1).count();
   // Resize output to fit number of non-twos
   F.resize(ones, allF.cols());
   J.resize(F.rows(),1);
